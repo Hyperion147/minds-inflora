@@ -38,6 +38,7 @@ export type ConsentStatusResult = {
   consentId: string;
   status: ConsentStatus;
   canFetchData: boolean;
+  dataRange?: DataRange;
 };
 
 export type DataSessionResult = {

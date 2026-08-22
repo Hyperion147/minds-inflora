@@ -1,4 +1,5 @@
 import type { SetuClient } from "./client";
+import { maskId } from "../normalize";
 import type {
   CreateFIDataFetchRequestV2,
   DataRange,
@@ -19,6 +20,12 @@ export async function createSetuFiSession(
     dataRange,
     format: "json",
   };
+
+  console.info("[Setu] create FI session request", {
+    consentId: maskId(consentId),
+    dataRange: body.dataRange,
+    format: body.format,
+  });
 
   const response = await client.http.post<FIDataFetchResponseV2>(
     "/v2/sessions",

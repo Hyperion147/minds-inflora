@@ -10,7 +10,7 @@ import type {
 /** Purpose code 102 — OpenAPI requires category + refUri in addition to code/text. */
 export const PURPOSE_102: NonNullable<CreateConsentRequestV2["purpose"]> = {
   code: "102",
-  text: "Personal spending and inflation analysis",
+  text: "Customer spending and budget analysis",
   category: { type: "Personal Finance" },
   refUri: "https://api.rebit.org.in/aa/purpose/102.xml",
 };
@@ -32,13 +32,13 @@ export function buildCreateConsentRequest(
     vua: input.vua,
     dataRange: input.dataRange,
     redirectUrl: input.redirectUrl,
-    consentTypes: ["PROFILE", "TRANSACTIONS"],
+    consentTypes: ["TRANSACTIONS"],
     fiTypes: ["DEPOSIT"],
     fetchType: "ONETIME",
     consentMode: "VIEW",
     purpose: PURPOSE_102,
     consentDuration: { unit: "MONTH", value: 1 },
-    dataLife: { unit: "MONTH", value: 1 },
+    dataLife: { unit: "DAY", value: 0 },
     frequency: { unit: "HOUR", value: 1 },
   };
 }

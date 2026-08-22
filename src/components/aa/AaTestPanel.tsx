@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import type { EngineTransactionInput } from "@/lib/inflation/types";
-import type { InfloraResult } from "@/lib/inflation/types";
+import type { EngineTransactionInput, InfloraResult } from "@/lib/inflation/types";
+import type { InflationPipelineDiagnostics } from "@/lib/inflation";
 import { formatDisplayDate, formatInr } from "@/lib/utils";
+import { normalizeMobileInput } from "@/lib/aa/mobileInput";
+import { getConsentIdFromCallbackParams } from "@/lib/aa/callbackParams";
 
 function maskId(id: string): string {
   if (id.length <= 8) return "****";
@@ -15,10 +17,11 @@ type ApiError = { error?: { code?: string; message?: string } };
 
 const POLL_MS = 3000;
 const POLL_TIMEOUT_MS = 60_000;
+const CONSENT_POLL_TIMEOUT_MS = 90_000;
 
 export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
   const searchParams = useSearchParams();
-  const queryConsentId = searchParams.get("consentId");
+  const queryConsentId = getConsentIdFromCallbackParams(searchParams);
   const queryError = searchParams.get("aa_message");
   
   const [consentId, setConsentId] = useState<string | null>(queryConsentId);
@@ -30,6 +33,8 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     [],
   );
   const [inflation, setInflation] = useState<InfloraResult | null>(null);
+  const [diagnostics, setDiagnostics] =
+    useState<InflationPipelineDiagnostics | null>(null);
   const [error, setError] = useState<string | null>(queryError);
   const [busy, setBusy] = useState<string | null>(null);
   const [phase, setPhase] = useState<string>("Not connected");
@@ -71,10 +76,175 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     }
   }, [queryConsentId, refreshStatus]);
 
+  const calculateInflationForTransactions = useCallback(
+    async (txns: EngineTransactionInput[]) => {
+      const res = await fetch("/api/inflation/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactions: txns }),
+      });
+      const data = (await res.json()) as {
+        result?: InfloraResult;
+        diagnostics?: InflationPipelineDiagnostics;
+      } & ApiError;
+      if (!res.ok || !data.result) {
+        throw new Error(
+          data.error?.message ?? "Unable to calculate personal inflation.",
+        );
+      }
+      setInflation(data.result);
+      setDiagnostics(data.diagnostics ?? null);
+    },
+    [],
+  );
+
+  const fetchTransactionsForSession = useCallback(async (id: string) => {
+    const started = Date.now();
+    while (Date.now() - started < POLL_TIMEOUT_MS) {
+      const res = await fetch(
+        `/api/aa/transactions?sessionId=${encodeURIComponent(id)}`,
+        { cache: "no-store" },
+      );
+      const data = (await res.json()) as {
+        status?: string;
+        transactions?: EngineTransactionInput[];
+        transactionCount?: number;
+      } & ApiError;
+
+      if (!res.ok) {
+        throw new Error(
+          data.error?.message ?? "Unable to fetch session transactions.",
+        );
+      }
+
+      setSessionStatus(data.status ?? null);
+
+      if (data.status === "PENDING" || data.status === "ACTIVE") {
+        setPhase(`Session ${data.status}`);
+        await sleep(POLL_MS);
+        continue;
+      }
+
+      if (data.status === "FAILED" || data.status === "EXPIRED") {
+        throw new Error(`FI session ${data.status?.toLowerCase()}.`);
+      }
+
+      const txns = data.transactions ?? [];
+      setTransactions(txns);
+      setPhase("Financial data ready");
+      return txns;
+    }
+
+    throw new Error("Timed out waiting for financial data (60s).");
+  }, []);
+
+  const createDataSession = useCallback(
+    async (id: string) => {
+      const res = await fetch("/api/aa/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consentId: id }),
+      });
+      const data = (await res.json()) as {
+        sessionId?: string;
+        status?: string;
+      } & ApiError;
+      if (!res.ok || !data.sessionId) {
+        throw new Error(
+          data.error?.message ?? "Unable to create FI data session.",
+        );
+      }
+
+      setSessionId(data.sessionId);
+      setSessionStatus(data.status ?? "PENDING");
+      setPhase(`Session ${data.status ?? "PENDING"}`);
+      return data.sessionId;
+    },
+    [],
+  );
+
+  const waitForFetchableConsent = useCallback(
+    async (id: string) => {
+      const started = Date.now();
+
+      while (Date.now() - started < CONSENT_POLL_TIMEOUT_MS) {
+        const status = await refreshStatus(id);
+        if (status.canFetchData) {
+          return status;
+        }
+
+        if (
+          status.status === "FAILED" ||
+          status.status === "REJECTED" ||
+          status.status === "REVOKED" ||
+          status.status === "EXPIRED"
+        ) {
+          throw new Error(`Consent ${status.status.toLowerCase()}.`);
+        }
+
+        setPhase(`Waiting for consent approval (${status.status})`);
+        await sleep(POLL_MS);
+      }
+
+      throw new Error("Timed out waiting for consent approval (90s).");
+    },
+    [refreshStatus],
+  );
+
+  const resumeConsentFlow = useCallback(
+    async (id: string) => {
+      setBusy("resume");
+      setError(null);
+      setInflation(null);
+      setDiagnostics(null);
+
+      try {
+        await waitForFetchableConsent(id);
+        const newSessionId = await createDataSession(id);
+        const txns = await fetchTransactionsForSession(newSessionId);
+        if (txns.length === 0) {
+          setPhase("No transactions returned");
+          return;
+        }
+        setPhase("Calculating inflation...");
+        await calculateInflationForTransactions(txns);
+        setPhase("Personal inflation ready");
+      } finally {
+        setBusy(null);
+      }
+    },
+    [
+      calculateInflationForTransactions,
+      createDataSession,
+      fetchTransactionsForSession,
+      waitForFetchableConsent,
+    ],
+  );
+
+  const handleConsentReturn = useEffectEvent((returnedConsentId: string) => {
+    void resumeConsentFlow(returnedConsentId).catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "Consent flow failed.");
+      setBusy(null);
+    });
+  });
+
+  useEffect(() => {
+    if (!queryConsentId || queryError) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      handleConsentReturn(queryConsentId);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [queryConsentId, queryError]);
+
   async function connect() {
     setBusy("connect");
     setError(null);
     setInflation(null);
+    setDiagnostics(null);
     setTransactions([]);
     setSessionId(null);
     setSessionStatus(null);
@@ -83,7 +253,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
       const res = await fetch("/api/aa/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobileNumber }),
+        body: JSON.stringify({ mobileNumber: normalizeMobileInput(mobileNumber) }),
       });
       const data = (await res.json()) as {
         url?: string;
@@ -118,7 +288,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
       const res = await fetch("/api/aa/account-availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobileNumber }),
+        body: JSON.stringify({ mobileNumber: normalizeMobileInput(mobileNumber) }),
       });
       const data = (await res.json()) as {
         accounts?: Array<{ aa: string; vua: string; status: boolean }>;
@@ -146,6 +316,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     setBusy("session");
     setError(null);
     setInflation(null);
+    setDiagnostics(null);
     try {
       const status = await refreshStatus(consentId);
       if (!status.canFetchData) {
@@ -154,26 +325,9 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
         );
       }
 
-      const res = await fetch("/api/aa/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consentId }),
-      });
-      const data = (await res.json()) as {
-        sessionId?: string;
-        status?: string;
-      } & ApiError;
-      if (!res.ok || !data.sessionId) {
-        throw new Error(
-          data.error?.message ?? "Unable to create FI data session.",
-        );
-      }
-
-      setSessionId(data.sessionId);
-      setSessionStatus(data.status ?? "PENDING");
-      setPhase(`Session ${data.status ?? "PENDING"}`);
+      const newSessionId = await createDataSession(consentId);
       setBusy("poll");
-      await pollTransactions(data.sessionId);
+      await fetchTransactionsForSession(newSessionId);
     } catch (err) {
       setError(
         err instanceof Error
@@ -184,66 +338,12 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     }
   }
 
-  async function pollTransactions(id: string) {
-    const started = Date.now();
-    while (Date.now() - started < POLL_TIMEOUT_MS) {
-      const res = await fetch(
-        `/api/aa/transactions?sessionId=${encodeURIComponent(id)}`,
-        { cache: "no-store" },
-      );
-      const data = (await res.json()) as {
-        status?: string;
-        transactions?: EngineTransactionInput[];
-        transactionCount?: number;
-      } & ApiError;
-
-      if (!res.ok) {
-        throw new Error(
-          data.error?.message ?? "Unable to fetch session transactions.",
-        );
-      }
-
-      setSessionStatus(data.status ?? null);
-
-      if (data.status === "PENDING" || data.status === "ACTIVE") {
-        setPhase(`Session ${data.status}`);
-        await sleep(POLL_MS);
-        continue;
-      }
-
-      if (data.status === "FAILED" || data.status === "EXPIRED") {
-        throw new Error(`FI session ${data.status?.toLowerCase()}.`);
-      }
-
-      const txns = data.transactions ?? [];
-      setTransactions(txns);
-      setPhase("COMPLETED");
-      setBusy(null);
-      return;
-    }
-
-    throw new Error("Timed out waiting for financial data (60s).");
-  }
-
   async function calculateInflation() {
     if (transactions.length === 0) return;
     setBusy("inflate");
     setError(null);
     try {
-      const res = await fetch("/api/inflation/calculate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactions }),
-      });
-      const data = (await res.json()) as {
-        result?: InfloraResult;
-      } & ApiError;
-      if (!res.ok || !data.result) {
-        throw new Error(
-          data.error?.message ?? "Unable to calculate personal inflation.",
-        );
-      }
-      setInflation(data.result);
+      await calculateInflationForTransactions(transactions);
     } catch (err) {
       setError(
         err instanceof Error
@@ -318,7 +418,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             autoComplete="tel"
             placeholder="10-digit mobile"
             value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            onChange={(e) => setMobileNumber(normalizeMobileInput(e.target.value))}
             className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
           />
         </label>
@@ -450,6 +550,32 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
               </li>
             ))}
           </ul>
+          {diagnostics ? (
+            <div className="rounded border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700">
+              <h3 className="font-medium text-zinc-900">
+                Pipeline diagnostics
+              </h3>
+              <p className="mt-1">
+                Eligible: {diagnostics.eligibleCount} /{" "}
+                {diagnostics.transactionCount}; mapped categories:{" "}
+                {diagnostics.mappedCategoryCount}; uncategorized spend:{" "}
+                {formatInr(diagnostics.uncategorizedSpend)} (
+                {diagnostics.uncategorizedPercentage.toFixed(2)}%).
+              </p>
+              {diagnostics.topCategorySamples.length > 0 ? (
+                <ul className="mt-2 space-y-1">
+                  {diagnostics.topCategorySamples.map((sample) => (
+                    <li key={sample.id}>
+                      {sample.descriptionSample ||
+                        sample.merchantNormalized ||
+                        "No description"}{" "}
+                      {"->"} {sample.categoryId} ({sample.exclusionReason})
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>

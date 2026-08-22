@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   calculateInflora,
   loadInfloraEngineData,
+  traceInflationPipeline,
 } from "@/lib/inflation";
 import { jsonError } from "@/lib/aa/http";
 import { AaError } from "@/lib/aa/types";
@@ -43,10 +44,16 @@ export async function POST(request: Request) {
       cpi,
       merchantMapping,
     });
+    const diagnostics = traceInflationPipeline({
+      transactions: parsed.data.transactions,
+      cpi,
+      merchantMapping,
+    });
 
     return Response.json({
       success: true,
       result,
+      diagnostics,
     });
   } catch (error) {
     return jsonError(error);

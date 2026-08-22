@@ -1,0 +1,13 @@
+division_code,division_name,combined_weight_percent,july_2026_index,july_2026_inflation_percent,app_category
+01,Food and beverages,36.753,109.1,5.24,food_beverages
+02,"Paan, tobacco and intoxicants",2.989,108.18,4.79,paan_tobacco_intoxicants
+03,Clothing and footwear,6.383,108.45,3.38,clothing_footwear
+04,"Housing, water, electricity, gas and other fuels",17.665,103.85,2.16,housing_utilities
+05,"Furnishings, household equipment and routine household maintenance",4.469,105.21,2.4,household_goods
+06,Health,6.1,104.75,1.34,healthcare
+07,Transport,8.796,105.63,4.43,transport
+08,Information and communication,3.609,104.26,0.63,information_communication
+09,"Recreation, sport and culture",1.516,104.49,1.64,recreation
+10,Education services,3.333,108.58,3.64,education
+11,Restaurants and accommodation services,3.348,112.68,7.72,restaurants_accommodation
+13,"Personal care, social protection and miscellaneous goods and services",5.038,123.51,14.77,personal_care_misc

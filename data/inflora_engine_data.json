@@ -1,0 +1,314 @@
+{
+  "dataset_version": "inflora-engine-v1",
+  "purpose": "Hackathon prototype data for personalized inflation engine",
+  "official_data": {
+    "cpi_series": "CPI 2024=100",
+    "sector": "Combined",
+    "latest_reference_month": "2026-07",
+    "headline_cpi_inflation": 4.45,
+    "source": "MoSPI, Press Release of Consumer Price Index on base 2024=100 for July 2026",
+    "source_url": "https://www.mospi.gov.in/uploads/latestReleases/latest_release_1786529680747_3113661d-1a2b-4b9a-af06-b340193ef9a0_Press_Release_CPI_July_2026.pdf",
+    "weight_source": "MoSPI, FAQs on CPI 2024 Series; division-wise weights derived from HCES 2023-24",
+    "weight_source_url": "https://mospi.gov.in/uploads/documents/documents/1770891066052-Annexure_V.pdf"
+  },
+  "cpi_divisions": [
+    {
+      "code": "01",
+      "name": "Food and beverages",
+      "combined_weight": 36.753,
+      "july_2026_index": 109.1,
+      "july_2026_inflation": 5.24,
+      "app_category": "food_beverages"
+    },
+    {
+      "code": "02",
+      "name": "Paan, tobacco and intoxicants",
+      "combined_weight": 2.989,
+      "july_2026_index": 108.18,
+      "july_2026_inflation": 4.79,
+      "app_category": "paan_tobacco_intoxicants"
+    },
+    {
+      "code": "03",
+      "name": "Clothing and footwear",
+      "combined_weight": 6.383,
+      "july_2026_index": 108.45,
+      "july_2026_inflation": 3.38,
+      "app_category": "clothing_footwear"
+    },
+    {
+      "code": "04",
+      "name": "Housing, water, electricity, gas and other fuels",
+      "combined_weight": 17.665,
+      "july_2026_index": 103.85,
+      "july_2026_inflation": 2.16,
+      "app_category": "housing_utilities"
+    },
+    {
+      "code": "05",
+      "name": "Furnishings, household equipment and routine household maintenance",
+      "combined_weight": 4.469,
+      "july_2026_index": 105.21,
+      "july_2026_inflation": 2.4,
+      "app_category": "household_goods"
+    },
+    {
+      "code": "06",
+      "name": "Health",
+      "combined_weight": 6.1,
+      "july_2026_index": 104.75,
+      "july_2026_inflation": 1.34,
+      "app_category": "healthcare"
+    },
+    {
+      "code": "07",
+      "name": "Transport",
+      "combined_weight": 8.796,
+      "july_2026_index": 105.63,
+      "july_2026_inflation": 4.43,
+      "app_category": "transport"
+    },
+    {
+      "code": "08",
+      "name": "Information and communication",
+      "combined_weight": 3.609,
+      "july_2026_index": 104.26,
+      "july_2026_inflation": 0.63,
+      "app_category": "information_communication"
+    },
+    {
+      "code": "09",
+      "name": "Recreation, sport and culture",
+      "combined_weight": 1.516,
+      "july_2026_index": 104.49,
+      "july_2026_inflation": 1.64,
+      "app_category": "recreation"
+    },
+    {
+      "code": "10",
+      "name": "Education services",
+      "combined_weight": 3.333,
+      "july_2026_index": 108.58,
+      "july_2026_inflation": 3.64,
+      "app_category": "education"
+    },
+    {
+      "code": "11",
+      "name": "Restaurants and accommodation services",
+      "combined_weight": 3.348,
+      "july_2026_index": 112.68,
+      "july_2026_inflation": 7.72,
+      "app_category": "restaurants_accommodation"
+    },
+    {
+      "code": "13",
+      "name": "Personal care, social protection and miscellaneous goods and services",
+      "combined_weight": 5.038,
+      "july_2026_index": 123.51,
+      "july_2026_inflation": 14.77,
+      "app_category": "personal_care_misc"
+    }
+  ],
+  "merchant_category_mapping": {
+    "swiggy": "food_beverages",
+    "zomato": "food_beverages",
+    "blinkit": "food_beverages",
+    "zepto": "food_beverages",
+    "bigbasket": "food_beverages",
+    "dmart": "food_beverages",
+    "reliance fresh": "food_beverages",
+    "spencer's": "food_beverages",
+    "more supermarket": "food_beverages",
+    "uber": "transport",
+    "uber india": "transport",
+    "ola": "transport",
+    "rapido": "transport",
+    "irctc": "transport",
+    "indigo": "transport",
+    "air india": "transport",
+    "shell": "transport",
+    "hpcl": "transport",
+    "bpcl": "transport",
+    "indian oil": "transport",
+    "amazon": "household_goods",
+    "flipkart": "household_goods",
+    "ikea": "household_goods",
+    "croma": "household_goods",
+    "reliance digital": "household_goods",
+    "apollo pharmacy": "healthcare",
+    "pharmeasy": "healthcare",
+    "netmeds": "healthcare",
+    "1mg": "healthcare",
+    "practo": "healthcare",
+    "myntra": "clothing_footwear",
+    "ajio": "clothing_footwear",
+    "meesho": "clothing_footwear",
+    "decathlon": "clothing_footwear",
+    "netflix": "recreation",
+    "spotify": "recreation",
+    "bookmyshow": "recreation",
+    "hotstar": "recreation",
+    "prime video": "recreation",
+    "udemy": "education",
+    "coursera": "education",
+    "unacademy": "education",
+    "school fees": "education",
+    "college fees": "education",
+    "airtel": "information_communication",
+    "jio": "information_communication",
+    "vi": "information_communication",
+    "bsnl": "information_communication",
+    "tanishq": "personal_care_misc",
+    "nykaa": "personal_care_misc",
+    "salon": "personal_care_misc",
+    "pharmacy": "healthcare",
+    "restaurant": "restaurants_accommodation",
+    "dominos": "restaurants_accommodation",
+    "mcdonalds": "restaurants_accommodation",
+    "kfc": "restaurants_accommodation"
+  },
+  "app_categories": [
+    "food_beverages",
+    "housing_utilities",
+    "transport",
+    "healthcare",
+    "education",
+    "clothing_footwear",
+    "information_communication",
+    "recreation",
+    "household_goods",
+    "restaurants_accommodation",
+    "personal_care_misc",
+    "paan_tobacco_intoxicants"
+  ],
+  "demo_transactions": [
+    {
+      "id": "demo-001",
+      "date": "2026-07-02",
+      "merchant": "Swiggy",
+      "amount": 540,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-002",
+      "date": "2026-07-03",
+      "merchant": "Uber",
+      "amount": 320,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-003",
+      "date": "2026-07-04",
+      "merchant": "DMart",
+      "amount": 2450,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-004",
+      "date": "2026-07-05",
+      "merchant": "Netflix",
+      "amount": 649,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-005",
+      "date": "2026-07-06",
+      "merchant": "Apollo Pharmacy",
+      "amount": 780,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-006",
+      "date": "2026-07-07",
+      "merchant": "Myntra",
+      "amount": 1899,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-007",
+      "date": "2026-07-08",
+      "merchant": "Airtel",
+      "amount": 799,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-008",
+      "date": "2026-07-09",
+      "merchant": "Dominos",
+      "amount": 850,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-009",
+      "date": "2026-07-10",
+      "merchant": "Udemy",
+      "amount": 999,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-010",
+      "date": "2026-07-11",
+      "merchant": "Ola",
+      "amount": 275,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-011",
+      "date": "2026-07-12",
+      "merchant": "Amazon",
+      "amount": 2199,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-012",
+      "date": "2026-07-15",
+      "merchant": "Swiggy",
+      "amount": 680,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-013",
+      "date": "2026-07-16",
+      "merchant": "Jio",
+      "amount": 599,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-014",
+      "date": "2026-07-17",
+      "merchant": "Zomato",
+      "amount": 720,
+      "currency": "INR",
+      "type": "DEBIT"
+    },
+    {
+      "id": "demo-015",
+      "date": "2026-07-20",
+      "merchant": "Salary",
+      "amount": 45000,
+      "currency": "INR",
+      "type": "CREDIT"
+    }
+  ],
+  "calculation_spec": {
+    "user_weight": "category_spend / total_eligible_debit_spend",
+    "personal_inflation": "sum(user_weight * cpi_category_inflation)",
+    "driver_contribution_pp": "user_weight * cpi_category_inflation",
+    "per_100_impact": "driver_contribution_pp",
+    "headline_comparison": "personal_inflation - headline_cpi_inflation",
+    "eligibility": "Include consumer spending DEBIT transactions; exclude credits, salary/income, transfers between user's own accounts, loan disbursals, refunds and other non-consumption flows when identifiable."
+  }
+}

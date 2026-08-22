@@ -14,6 +14,7 @@ import {
   normalizeTransactions,
   resolveMerchantCategory,
   selectTopDrivers,
+  traceInflationPipeline,
   type CpiDataset,
   type EngineTransactionInput,
   type MerchantCategoryMapping,
@@ -403,6 +404,43 @@ describe("uncategorized & exclusions", () => {
     expect(result.uncategorizedPercentage).toBe(100);
     expect(result.categories).toHaveLength(0);
     expect(result.excludedCount).toBe(1);
+  });
+
+  it("diagnoses Setu-like eligible spend with no mapped category", () => {
+    const transactions: EngineTransactionInput[] = [
+      {
+        id: "setu-sandbox-1",
+        date: "2026-07-01T10:00:00+05:30",
+        description: "UPI/P2M/000001/MERCHANT PAYMENT",
+        amount: 2239042,
+        currency: "INR",
+        type: "DEBIT",
+      },
+    ];
+
+    const result = calculateInflora({
+      transactions,
+      cpi: miniCpi(),
+      merchantMapping: mapping,
+    });
+    const diagnostics = traceInflationPipeline({
+      transactions,
+      cpi: miniCpi(),
+      merchantMapping: mapping,
+    });
+
+    expect(result.totalEligibleSpend).toBe(2239042);
+    expect(result.personalInflation).toBe(0);
+    expect(result.topDrivers).toHaveLength(0);
+    expect(result.uncategorizedSpend).toBe(2239042);
+    expect(diagnostics.likelyIssue).toBe("NO_MAPPED_CATEGORIES");
+    expect(diagnostics.mappedCategoryCount).toBe(0);
+    expect(diagnostics.topCategorySamples[0]).toMatchObject({
+      merchantNormalized: "upi p2m 000001 merchant payment",
+      eligible: true,
+      exclusionReason: "eligible",
+      categoryId: "uncategorized",
+    });
   });
 });
 

@@ -20,3 +20,25 @@ export function calculateTransactionDataRange(
 export function getConfiguredDataRange(env: AppEnv): DataRange {
   return calculateTransactionDataRange(env.AA_TRANSACTION_LOOKBACK_MONTHS);
 }
+
+export function clampDataRangeToConsent(
+  requested: DataRange,
+  consent: DataRange,
+): DataRange {
+  const requestedFrom = new Date(requested.from);
+  const requestedTo = new Date(requested.to);
+  const consentFrom = new Date(consent.from);
+  const consentTo = new Date(consent.to);
+
+  const from = requestedFrom > consentFrom ? requestedFrom : consentFrom;
+  const to = requestedTo < consentTo ? requestedTo : consentTo;
+
+  if (from > to) {
+    throw new Error("Requested FI dataRange does not overlap consent dataRange.");
+  }
+
+  return {
+    from: from.toISOString(),
+    to: to.toISOString(),
+  };
+}

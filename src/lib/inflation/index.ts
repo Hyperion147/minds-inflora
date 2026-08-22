@@ -68,6 +68,11 @@ export {
 } from "./calculateHeadlineComparison";
 export { calculatePer100Impact } from "./calculatePer100Impact";
 export { calculateInflora } from "./calculateInflora";
+export { traceInflationPipeline } from "./tracePipeline";
+export type {
+  CategoryTraceSample,
+  InflationPipelineDiagnostics,
+} from "./tracePipeline";
 export {
   cpiDatasetFromOfficial,
   loadDemoTransactionsCsv,

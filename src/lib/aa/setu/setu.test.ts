@@ -8,6 +8,7 @@ import {
   PURPOSE_102,
   buildCreateConsentRequest,
   createSetuConsent,
+  getSetuConsent,
 } from "@/lib/aa/setu/consent";
 import {
   dedupeEngineTransactions,
@@ -17,8 +18,16 @@ import {
   normalizeTxnType,
   parseAmount,
 } from "@/lib/aa/normalize";
-import { createAaProvider, calculateTransactionDataRange } from "@/lib/aa";
+import {
+  AaService,
+  createAaProvider,
+  calculateTransactionDataRange,
+} from "@/lib/aa";
+import type { AccountAggregatorProvider } from "@/lib/aa";
+import { clampDataRangeToConsent } from "@/lib/aa/dataRange";
+import { getConsentIdFromCallbackParams } from "@/lib/aa/callbackParams";
 import { MockAaProvider, resetMockAaForTests } from "@/lib/aa/mock/provider";
+import { normalizeMobileInput } from "@/lib/aa/mobileInput";
 import { SetuAaProvider } from "@/lib/aa/setu/provider";
 import { normalizeSetuError } from "@/lib/aa/setu/errors";
 import { AaError } from "@/lib/aa/types";
@@ -199,7 +208,7 @@ describe("consent status parsing", () => {
   it("purpose 102 matches OpenAPI ConsentRequestPurpose shape", () => {
     expect(PURPOSE_102).toEqual({
       code: "102",
-      text: "Personal spending and inflation analysis",
+      text: "Customer spending and budget analysis",
       category: { type: "Personal Finance" },
       refUri: "https://api.rebit.org.in/aa/purpose/102.xml",
     });
@@ -218,7 +227,7 @@ describe("Setu createConsent request (AA v2)", () => {
     vi.clearAllMocks();
   });
 
-  it("builds payload: VUA, purpose 102, PROFILE+TRANSACTIONS, DEPOSIT, VIEW, dataRange, redirect", () => {
+  it("builds payload: VUA, purpose 102, no context, TRANSACTIONS only, DEPOSIT, VIEW, dataRange, redirect", () => {
     const body = buildCreateConsentRequest({
       vua: "9999999999",
       dataRange,
@@ -227,16 +236,21 @@ describe("Setu createConsent request (AA v2)", () => {
 
     expect(body.vua).toBe("9999999999");
     expect(body.purpose?.code).toBe("102");
-    expect(body.purpose?.text).toBe("Personal spending and inflation analysis");
-    expect(body.consentTypes).toEqual(["PROFILE", "TRANSACTIONS"]);
+    expect(body.purpose?.text).toBe("Customer spending and budget analysis");
+    expect(body).not.toHaveProperty("context");
+    expect(body.consentTypes).toEqual(["TRANSACTIONS"]);
     expect(body.fiTypes).toEqual(["DEPOSIT"]);
     expect(body.fetchType).toBe("ONETIME");
     expect(body.consentMode).toBe("VIEW");
     expect(body.consentDuration).toEqual({ unit: "MONTH", value: 1 });
-    expect(body.dataLife).toEqual({ unit: "MONTH", value: 1 });
+    expect(body.dataLife).toEqual({ unit: "DAY", value: 0 });
     expect(body.frequency).toEqual({ unit: "HOUR", value: 1 });
     expect(body.dataRange).toEqual(dataRange);
     expect(body.redirectUrl).toBe(redirectUrl);
+    expect(body).not.toHaveProperty("PAN");
+    expect(body).not.toHaveProperty("additionalParams");
+    expect(body).not.toHaveProperty("enableAdditionalPhoneNumber");
+    expect(body).not.toHaveProperty("dataFilter");
   });
 
   it("does not read VUA from environment", () => {
@@ -267,10 +281,14 @@ describe("Setu createConsent request (AA v2)", () => {
       "/v2/consents",
       expect.objectContaining({
         vua: "9999999999",
-        consentTypes: ["PROFILE", "TRANSACTIONS"],
+        consentTypes: ["TRANSACTIONS"],
         fiTypes: ["DEPOSIT"],
         redirectUrl,
       }),
+    );
+    expect(post).toHaveBeenCalledWith(
+      "/v2/consents",
+      expect.not.objectContaining({ context: expect.anything() }),
     );
     expect(result).toMatchObject({
       id: "consent-1",
@@ -342,6 +360,26 @@ describe("DEPOSIT transaction normalization", () => {
       merchant: undefined,
       description: "SWIGGY BANGALORE",
       amount: 540,
+      currency: "INR",
+      type: "DEBIT",
+    });
+  });
+
+  it("keeps Setu sandbox narration as description without inventing a merchant", () => {
+    const txn = normalizeSetuDepositTransaction({
+      txnId: "T-SANDBOX",
+      amount: "2239042.00",
+      narration: "UPI/P2M/000001/MERCHANT PAYMENT",
+      transactionTimestamp: "2026-08-22T12:00:00.000Z",
+      type: "DEBIT",
+    });
+
+    expect(txn).toEqual({
+      id: "T-SANDBOX",
+      date: "2026-08-22T12:00:00.000Z",
+      merchant: undefined,
+      description: "UPI/P2M/000001/MERCHANT PAYMENT",
+      amount: 2239042,
       currency: "INR",
       type: "DEBIT",
     });
@@ -558,6 +596,20 @@ describe("mock provider + engine unchanged", () => {
 });
 
 describe("runtime VUA from customer mobile", () => {
+  it("reads Setu callback id query param as the returned consent id", () => {
+    const params = new URLSearchParams("success=true&id=consent-123");
+    expect(getConsentIdFromCallbackParams(params)).toBe("consent-123");
+  });
+
+  it("browser input normalizer strips AA handles before API requests", () => {
+    expect(normalizeMobileInput("9999999999@onemoney")).toBe("9999999999");
+    expect(
+      JSON.stringify({
+        mobileNumber: normalizeMobileInput("9999999999@onemoney"),
+      }),
+    ).toBe('{"mobileNumber":"9999999999"}');
+  });
+
   it("parseCustomerMobileNumber rejects empty and accepts 10 digits", async () => {
     const { parseCustomerMobileNumber } = await import("@/lib/aa/mobile");
     expect(() => parseCustomerMobileNumber("")).toThrow(AaError);
@@ -574,5 +626,89 @@ describe("FI session status handling", () => {
     const range = calculateTransactionDataRange(6, new Date("2026-07-21T00:00:00Z"));
     expect(range.to).toBe("2026-07-21T00:00:00.000Z");
     expect(range.from).toBe("2026-01-21T00:00:00.000Z");
+  });
+
+  it("clamps requested FI range to the consent FI range boundaries", () => {
+    const consentRange = {
+      from: "2026-02-22T00:00:00.000Z",
+      to: "2026-08-22T12:00:00.000Z",
+    };
+    const requestedRange = {
+      from: "2026-02-21T23:59:59.000Z",
+      to: "2026-08-22T12:00:01.000Z",
+    };
+
+    expect(clampDataRangeToConsent(requestedRange, consentRange)).toEqual(
+      consentRange,
+    );
+  });
+
+  it("Setu get consent preserves the active consent FI dataRange", async () => {
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        id: "consent-1",
+        url: "https://consents.setu.co/j/abc",
+        status: "ACTIVE",
+        detail: {
+          dataRange: {
+            from: "2026-02-22T00:00:00.000Z",
+            to: "2026-08-22T12:00:00.000Z",
+          },
+        },
+      },
+    });
+
+    const response = await getSetuConsent(
+      { http: { get } } as never,
+      "consent-1",
+      true,
+    );
+
+    expect(get).toHaveBeenCalledWith("/v2/consents/consent-1", {
+      params: { expanded: true },
+    });
+    expect(response.detail?.dataRange).toEqual({
+      from: "2026-02-22T00:00:00.000Z",
+      to: "2026-08-22T12:00:00.000Z",
+    });
+  });
+
+  it("AaService creates FI sessions with the consent-approved dataRange", async () => {
+    const consentRange = {
+      from: "2026-02-22T00:00:00.000Z",
+      to: "2026-08-22T12:00:00.000Z",
+    };
+    let sessionRange: typeof consentRange | undefined;
+    const provider: AccountAggregatorProvider = {
+      name: "setu",
+      createConsent: vi.fn() as never,
+      getConsentStatus: vi.fn().mockResolvedValue({
+        consentId: "consent-1",
+        status: "ACTIVE",
+        canFetchData: true,
+        dataRange: consentRange,
+      }),
+      createFinancialDataSession: vi.fn().mockImplementation(
+        async (consentId: string, dataRange: typeof consentRange) => {
+          sessionRange = dataRange;
+          return {
+            sessionId: "session-1",
+            consentId,
+            status: "PENDING",
+            dataRange,
+          };
+        },
+      ),
+      getFinancialData: vi.fn() as never,
+    };
+    const service = new AaService(provider, {
+      AA_PROVIDER: "setu",
+      APP_BASE_URL: "http://localhost:3000",
+      AA_TRANSACTION_LOOKBACK_MONTHS: 6,
+    });
+
+    await service.createSession("consent-1");
+
+    expect(sessionRange).toEqual(consentRange);
   });
 });

@@ -63,12 +63,13 @@ export class SetuAaProvider implements AccountAggregatorProvider {
   }
 
   async getConsentStatus(consentId: string): Promise<ConsentStatusResult> {
-    const response = await getSetuConsent(this.client, consentId);
+    const response = await getSetuConsent(this.client, consentId, true);
     const status = mapConsentStatus(response.status);
     return {
       consentId: response.id,
       status,
       canFetchData: consentAllowsDataFetch(status),
+      dataRange: response.detail?.dataRange,
     };
   }
 

@@ -87,7 +87,7 @@ export class AaService {
       );
     }
 
-    const dataRange = getConfiguredDataRange(this.env);
+    const dataRange = status.dataRange ?? getConfiguredDataRange(this.env);
     const session = await this.provider.createFinancialDataSession(
       consentId.trim(),
       dataRange,
@@ -98,6 +98,7 @@ export class AaService {
       consentId: maskId(session.consentId),
       sessionId: maskId(session.sessionId),
       status: session.status,
+      dataRange: session.dataRange,
     });
 
     return session;

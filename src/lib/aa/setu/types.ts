@@ -77,7 +77,10 @@ export type ConsentResponseV2 = {
   status: SetuConsentStatus;
   redirectUrl?: string;
   accountsLinked?: unknown[];
-  detail?: unknown;
+  detail?: {
+    dataRange?: DataRange;
+    [key: string]: unknown;
+  };
 };
 
 /** AccountAvailabilityRequest — POST /v2/account-availability */

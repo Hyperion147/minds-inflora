@@ -52,7 +52,7 @@ export default function MockConsentClient() {
     return (
       <main className="mx-auto max-w-lg px-6 py-16 font-sans">
         <h1 className="text-2xl font-semibold">Mock Consent</h1>
-        <p className="mt-3 text-zinc-600">
+        <p className="mt-3 text-muted-foreground">
           Missing consentId. Start from /aa-test.
         </p>
       </main>
@@ -60,19 +60,19 @@ export default function MockConsentClient() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-16 font-sans text-zinc-900">
-      <p className="text-sm uppercase tracking-wide text-zinc-500">
+    <main className="mx-auto max-w-lg px-6 py-16 font-sans text-foreground">
+      <p className="text-sm uppercase tracking-wide text-muted-foreground">
         Mock Account Aggregator
       </p>
       <h1 className="mt-2 text-3xl font-semibold">Consent request</h1>
-      <p className="mt-3 text-zinc-600">
+      <p className="mt-3 text-muted-foreground">
         INFLORA requests DEPOSIT transaction data for personal inflation
         analysis (demo only).
       </p>
-      <p className="mt-4 font-mono text-xs text-zinc-500">Consent: {consentId}</p>
+      <p className="mt-4 font-mono text-xs text-muted-foreground">Consent: {consentId}</p>
 
       {error ? (
-        <p className="mt-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="mt-4 rounded border border-destructive bg-destructive px-3 py-2 text-sm text-destructive-foreground">
           {error}
         </p>
       ) : null}
@@ -82,7 +82,7 @@ export default function MockConsentClient() {
           type="button"
           disabled={busy}
           onClick={() => void complete("ACTIVE")}
-          className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
+          className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
         >
           Consent Granted
         </button>
@@ -90,7 +90,7 @@ export default function MockConsentClient() {
           type="button"
           disabled={busy}
           onClick={() => void complete("REJECTED")}
-          className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
+          className="rounded border border-input px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
         >
           Cancel
         </button>

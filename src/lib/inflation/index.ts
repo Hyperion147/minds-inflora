@@ -18,12 +18,15 @@
 
 export type {
   AppCategoryId,
+  CategoryConfidence,
   CategorizedTransaction,
+  CategorizationMethod,
   CategoryDriver,
   CategorySpending,
   CpiDataset,
   CpiDivision,
   EligibleTransaction,
+  EligibilityReason,
   EngineTransactionInput,
   HeadlineComparison,
   HeadlineDirection,
@@ -76,6 +79,8 @@ export type {
 } from "./tracePipeline";
 export {
   cpiDatasetFromOfficial,
+  loadDeterministicFixtureTransactionsCsv,
   loadDemoTransactionsCsv,
+  loadTransactionsCsv,
   loadInfloraEngineData,
 } from "./loadDataset";

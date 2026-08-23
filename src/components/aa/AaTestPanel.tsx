@@ -447,57 +447,57 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
   }
 
   return (
-    <div className="space-y-8 font-sans text-zinc-900">
-      <header className="border-b border-zinc-200 pb-6">
-        <p className="text-sm font-medium tracking-wide text-zinc-500">
+    <div className="space-y-8 font-sans text-foreground">
+      <header className="border-b border-border pb-6">
+        <p className="text-sm font-medium tracking-wide text-muted-foreground">
           INFLORA
         </p>
         <h1 className="mt-1 text-3xl font-semibold">
-          Account Aggregator Integration Test
+          Connect Live Financial Accounts
         </h1>
         <dl className="mt-4 grid gap-1 text-sm sm:grid-cols-2">
           <div>
-            <dt className="inline text-zinc-500">Provider: </dt>
+            <dt className="inline text-muted-foreground">Provider: </dt>
             <dd className="inline font-medium">{providerLabel}</dd>
           </div>
           <div>
-            <dt className="inline text-zinc-500">Status: </dt>
+            <dt className="inline text-muted-foreground">Status: </dt>
             <dd className="inline font-medium">{phase}</dd>
           </div>
           {consentId ? (
             <div>
-              <dt className="inline text-zinc-500">Consent ID: </dt>
+              <dt className="inline text-muted-foreground">Consent ID: </dt>
               <dd className="inline font-mono text-xs">{maskId(consentId)}</dd>
             </div>
           ) : null}
           {consentStatus ? (
             <div>
-              <dt className="inline text-zinc-500">Consent status: </dt>
+              <dt className="inline text-muted-foreground">Consent status: </dt>
               <dd className="inline font-medium">{consentStatus}</dd>
             </div>
           ) : null}
           {sessionId ? (
             <div>
-              <dt className="inline text-zinc-500">Session: </dt>
+              <dt className="inline text-muted-foreground">Session: </dt>
               <dd className="inline font-mono text-xs">{maskId(sessionId)}</dd>
             </div>
           ) : null}
           {sessionStatus ? (
             <div>
-              <dt className="inline text-zinc-500">Session status: </dt>
+              <dt className="inline text-muted-foreground">Session status: </dt>
               <dd className="inline font-medium">{sessionStatus}</dd>
             </div>
           ) : null}
         </dl>
         {phaseDetail ? (
-          <p className="mt-3 text-sm text-zinc-600">{phaseDetail}</p>
+          <p className="mt-3 text-sm text-muted-foreground">{phaseDetail}</p>
         ) : null}
       </header>
 
       {error ? (
         <p
           role="alert"
-          className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="rounded border border-destructive bg-destructive px-3 py-2 text-sm text-destructive-foreground"
         >
           {error}
         </p>
@@ -505,7 +505,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <label className="flex-1 text-sm">
-          <span className="mb-1 block text-zinc-500">Customer mobile number</span>
+          <span className="mb-1 block text-muted-foreground">Customer mobile number</span>
           <input
             type="tel"
             inputMode="numeric"
@@ -513,7 +513,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             placeholder="10-digit mobile"
             value={mobileNumber}
             onChange={(e) => setMobileNumber(normalizeMobileInput(e.target.value))}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-input bg-background px-3 py-2 text-sm text-foreground"
           />
         </label>
       </div>
@@ -533,7 +533,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           type="button"
           disabled={Boolean(busy)}
           onClick={() => void checkAvailability()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
+          className="rounded border border-input px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
         >
           {busy === "availability" ? "Checking…" : "Check account availability"}
         </button>
@@ -541,7 +541,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           type="button"
           disabled={Boolean(busy)}
           onClick={() => void connect()}
-          className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+          className="rounded bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
         >
           {busy === "connect" ? "Creating consent…" : "Connect Financial Accounts"}
         </button>
@@ -549,7 +549,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           type="button"
           disabled={Boolean(busy) || !canFetch}
           onClick={() => void fetchFinancialData()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
+          className="rounded border border-input px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
         >
           {busy === "session" || busy === "poll"
             ? "Fetching your financial data..."
@@ -559,7 +559,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           type="button"
           disabled={Boolean(busy) || transactions.length === 0}
           onClick={() => void calculateInflation()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
+          className="rounded border border-input px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
         >
           {busy === "inflate"
             ? "Calculating…"
@@ -575,7 +575,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-300 text-zinc-500">
+                <tr className="border-b border-border text-muted-foreground">
                   <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Description</th>
                   <th className="py-2 pr-4 font-medium">Type</th>
@@ -584,7 +584,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
               </thead>
               <tbody>
                 {transactions.map((txn) => (
-                  <tr key={txn.id} className="border-b border-zinc-100">
+                  <tr key={txn.id} className="border-b border-border">
                     <td className="py-2 pr-4 whitespace-nowrap">
                       {formatDisplayDate(txn.date)}
                     </td>
@@ -615,7 +615,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 return (
                   <li
                     key={`${fip.fipId}-${account.linkRefNumber ?? account.maskedAccNumber ?? account.status}`}
-                    className={isAvailable ? "text-zinc-700" : "text-amber-800"}
+                    className={isAvailable ? "text-foreground" : "text-muted-foreground"}
                   >
                     {[fip.fipId, account.maskedAccNumber, account.status, account.description]
                       .filter(Boolean)
@@ -630,16 +630,16 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
       ) : null}
 
       {inflation ? (
-        <section className="space-y-3 border-t border-zinc-200 pt-6">
+        <section className="space-y-3 border-t border-border pt-6">
           <h2 className="text-lg font-semibold">Personal Inflation</h2>
           {inflation.calculationStatus !== "OK" ? (
-            <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <p className="rounded border border-border bg-muted px-3 py-2 text-sm text-foreground">
               Personal inflation is unavailable because categorization coverage is insufficient for the fetched transactions.
             </p>
           ) : null}
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-zinc-500">Personal Inflation</dt>
+              <dt className="text-muted-foreground">Personal Inflation</dt>
               <dd className="text-xl font-semibold">
                 {inflation.calculationStatus === "OK"
                   ? `${inflation.personalInflation.toFixed(2)}%`
@@ -647,13 +647,13 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
               </dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Headline CPI</dt>
+              <dt className="text-muted-foreground">Headline CPI</dt>
               <dd className="text-xl font-semibold">
                 {inflation.headlineInflation.toFixed(2)}%
               </dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Difference</dt>
+              <dt className="text-muted-foreground">Difference</dt>
               <dd className="font-medium">
                 {inflation.calculationStatus === "OK"
                   ? `${inflation.differenceFromHeadline.toFixed(2)} pp (${inflation.direction})`
@@ -661,7 +661,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
               </dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Eligible spend</dt>
+              <dt className="text-muted-foreground">Eligible spend</dt>
               <dd className="font-medium">
                 {formatInr(inflation.totalEligibleSpend)}
               </dd>
@@ -677,9 +677,9 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             ))}
           </ul>
           {diagnostics ? (
-            <div className="rounded border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700">
-              <h3 className="font-medium text-zinc-900">
-                Pipeline diagnostics
+            <div className="rounded border border-border bg-card p-3 text-xs text-muted-foreground">
+              <h3 className="font-medium text-foreground">
+                Categorization summary
               </h3>
               <p className="mt-1">
                 Eligible: {diagnostics.eligibleCount} /{" "}
@@ -738,8 +738,6 @@ function formatSessionFailureDetails(result: {
 
   const details = [
     states.length > 0 ? `Provider statuses: ${states.join("; ")}` : null,
-    result.traceId ? `Trace ID: ${result.traceId}` : null,
-    result.txnId ? `Transaction ID: ${result.txnId}` : null,
   ].filter(Boolean);
 
   return details.length > 0 ? details.join(" | ") : null;
@@ -780,7 +778,6 @@ function buildSessionSuccessDetail(
       unavailable.length > 0
         ? `Unavailable accounts: ${unavailable.join("; ")}.`
         : null,
-      result.traceId ? `Trace ID: ${result.traceId}.` : null,
     ].filter(Boolean);
 
     return parts.join(" ");
@@ -794,7 +791,6 @@ function buildSessionSuccessDetail(
       unavailable.length > 0
         ? `Unavailable accounts: ${unavailable.join("; ")}.`
         : null,
-      result.traceId ? `Trace ID: ${result.traceId}.` : null,
     ].filter(Boolean);
 
     return parts.length > 0 ? parts.join(" ") : result.providerMessage ?? null;

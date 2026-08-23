@@ -1,0 +1,121 @@
+id,date,merchant,amount,currency,type
+fixture-001,2026-03-03,Swiggy,342,INR,DEBIT
+fixture-002,2026-03-04,Zomato,418,INR,DEBIT
+fixture-003,2026-03-05,DMart,2385,INR,DEBIT
+fixture-004,2026-03-06,Blinkit,624,INR,DEBIT
+fixture-005,2026-03-07,BigBasket,1788,INR,DEBIT
+fixture-006,2026-03-08,Uber,286,INR,DEBIT
+fixture-007,2026-03-09,Ola,224,INR,DEBIT
+fixture-008,2026-03-10,BPCL,3110,INR,DEBIT
+fixture-009,2026-03-11,Apollo Pharmacy,692,INR,DEBIT
+fixture-010,2026-03-12,1mg,534,INR,DEBIT
+fixture-011,2026-03-13,Netmeds,448,INR,DEBIT
+fixture-012,2026-03-14,Amazon,1965,INR,DEBIT
+fixture-013,2026-03-15,Flipkart,2240,INR,DEBIT
+fixture-014,2026-03-16,Reliance Digital,4185,INR,DEBIT
+fixture-015,2026-03-17,Myntra,1649,INR,DEBIT
+fixture-016,2026-03-18,Ajio,1328,INR,DEBIT
+fixture-017,2026-03-19,Netflix,649,INR,DEBIT
+fixture-018,2026-03-20,Spotify,119,INR,DEBIT
+fixture-019,2026-03-21,Udemy,899,INR,DEBIT
+fixture-020,2026-03-22,Coursera,1499,INR,DEBIT
+fixture-021,2026-03-23,Airtel,799,INR,DEBIT
+fixture-022,2026-03-24,Jio,599,INR,DEBIT
+fixture-023,2026-03-25,Nykaa,1185,INR,DEBIT
+fixture-024,2026-03-26,Salon,950,INR,DEBIT
+fixture-025,2026-03-27,Dominos,864,INR,DEBIT
+fixture-026,2026-03-28,KFC,572,INR,DEBIT
+fixture-027,2026-04-02,Swiggy Online,386,INR,DEBIT
+fixture-028,2026-04-03,Zomato,452,INR,DEBIT
+fixture-029,2026-04-04,DMart,2610,INR,DEBIT
+fixture-030,2026-04-05,Zepto,485,INR,DEBIT
+fixture-031,2026-04-06,Reliance Fresh,1324,INR,DEBIT
+fixture-032,2026-04-07,Uber India,342,INR,DEBIT
+fixture-033,2026-04-08,Rapido,178,INR,DEBIT
+fixture-034,2026-04-09,Indian Oil,2875,INR,DEBIT
+fixture-035,2026-04-10,Apollo Pharmacy,728,INR,DEBIT
+fixture-036,2026-04-11,Practo,1199,INR,DEBIT
+fixture-037,2026-04-12,PharmEasy,664,INR,DEBIT
+fixture-038,2026-04-13,Amazon Online,2425,INR,DEBIT
+fixture-039,2026-04-14,Croma,5630,INR,DEBIT
+fixture-040,2026-04-15,IKEA,3188,INR,DEBIT
+fixture-041,2026-04-16,Myntra,1895,INR,DEBIT
+fixture-042,2026-04-17,Meesho,844,INR,DEBIT
+fixture-043,2026-04-18,Prime Video,149,INR,DEBIT
+fixture-044,2026-04-19,BookMyShow,540,INR,DEBIT
+fixture-045,2026-04-20,Udemy,999,INR,DEBIT
+fixture-046,2026-04-21,Unacademy,1299,INR,DEBIT
+fixture-047,2026-04-22,Vi,349,INR,DEBIT
+fixture-048,2026-04-23,BSNL,499,INR,DEBIT
+fixture-049,2026-04-24,Tanishq,4825,INR,DEBIT
+fixture-050,2026-04-25,Salon,1200,INR,DEBIT
+fixture-051,2026-04-26,Restaurant,1380,INR,DEBIT
+fixture-052,2026-04-27,McDonalds,465,INR,DEBIT
+fixture-053,2026-05-03,Swiggy.in,318,INR,DEBIT
+fixture-054,2026-05-04,Zomato,506,INR,DEBIT
+fixture-055,2026-05-05,More Supermarket,1944,INR,DEBIT
+fixture-056,2026-05-06,Spencer's,1566,INR,DEBIT
+fixture-057,2026-05-07,Blinkit,592,INR,DEBIT
+fixture-058,2026-05-08,Uber,264,INR,DEBIT
+fixture-059,2026-05-09,Ola,246,INR,DEBIT
+fixture-060,2026-05-10,Shell,3340,INR,DEBIT
+fixture-061,2026-05-11,Apollo Pharmacy,814,INR,DEBIT
+fixture-062,2026-05-12,1mg,472,INR,DEBIT
+fixture-063,2026-05-13,Netmeds,525,INR,DEBIT
+fixture-064,2026-05-14,Amazon India,2148,INR,DEBIT
+fixture-065,2026-05-15,Flipkart India,1760,INR,DEBIT
+fixture-066,2026-05-16,Reliance Digital,3899,INR,DEBIT
+fixture-067,2026-05-17,Myntra,1455,INR,DEBIT
+fixture-068,2026-05-18,Ajio,1180,INR,DEBIT
+fixture-069,2026-05-19,Netflix,649,INR,DEBIT
+fixture-070,2026-05-20,Hotstar,299,INR,DEBIT
+fixture-071,2026-05-21,Coursera,1599,INR,DEBIT
+fixture-072,2026-05-22,Udemy,899,INR,DEBIT
+fixture-073,2026-05-23,Airtel,749,INR,DEBIT
+fixture-074,2026-05-24,Jio,399,INR,DEBIT
+fixture-075,2026-05-25,Nykaa,940,INR,DEBIT
+fixture-076,2026-05-26,Salon,880,INR,DEBIT
+fixture-077,2026-05-27,Dominos,792,INR,DEBIT
+fixture-078,2026-05-28,KFC,615,INR,DEBIT
+fixture-079,2026-06-03,Swiggy,355,INR,DEBIT
+fixture-080,2026-06-04,DMart,2488,INR,DEBIT
+fixture-081,2026-06-05,BigBasket,1695,INR,DEBIT
+fixture-082,2026-06-06,Uber India,308,INR,DEBIT
+fixture-083,2026-06-07,BPCL,2960,INR,DEBIT
+fixture-084,2026-06-08,Apollo Pharmacy,756,INR,DEBIT
+fixture-085,2026-06-09,Amazon,2288,INR,DEBIT
+fixture-086,2026-06-10,Croma,4490,INR,DEBIT
+fixture-087,2026-06-11,Myntra,1720,INR,DEBIT
+fixture-088,2026-06-12,Netflix,649,INR,DEBIT
+fixture-089,2026-06-13,Udemy,1099,INR,DEBIT
+fixture-090,2026-06-14,Jio,599,INR,DEBIT
+fixture-091,2026-06-15,Local Kirana,640,INR,DEBIT
+fixture-092,2026-06-16,Neighborhood Cafe,520,INR,DEBIT
+fixture-093,2026-06-17,Community Clinic,900,INR,DEBIT
+fixture-094,2026-06-18,Apartment Maintenance,2300,INR,DEBIT
+fixture-095,2026-06-19,Salary,85000,INR,CREDIT
+fixture-096,2026-06-20,Self Transfer,15000,INR,DEBIT
+fixture-097,2026-06-21,Amazon Refund,1499,INR,DEBIT
+fixture-098,2026-06-22,Mutual Fund SIP,10000,INR,DEBIT
+fixture-099,2026-06-23,Credit Card Bill Payment,22000,INR,DEBIT
+fixture-100,2026-06-24,Loan Disbursal,50000,INR,DEBIT
+fixture-101,2026-06-25,Salary,85000,INR,CREDIT
+fixture-102,2026-06-26,Transfer To Self,12000,INR,DEBIT
+fixture-103,2026-06-27,Flipkart Refund,999,INR,DEBIT
+fixture-104,2026-06-28,Mutual Fund SIP,10000,INR,DEBIT
+fixture-105,2026-07-01,Credit Card Payment,18000,INR,DEBIT
+fixture-106,2026-07-02,Personal Loan Disbursal,75000,INR,DEBIT
+fixture-107,2026-07-03,Salary,85000,INR,CREDIT
+fixture-108,2026-07-04,Own Account Transfer,9500,INR,DEBIT
+fixture-109,2026-07-05,Refund Reversal,650,INR,DEBIT
+fixture-110,2026-07-06,Investment Transfer,7000,INR,DEBIT
+fixture-111,2026-07-07,CC Bill,16000,INR,DEBIT
+fixture-112,2026-07-08,Salary,85000,INR,CREDIT
+fixture-113,2026-07-09,Cash Withdrawal Self Transfer,5000,INR,DEBIT
+fixture-114,2026-07-10,To Self ATM Withdrawal,4500,INR,DEBIT
+fixture-115,2026-07-11,Salary,85000,INR,CREDIT
+fixture-116,2026-07-12,Self Transfer,11000,INR,DEBIT
+fixture-117,2026-07-13,Chargeback Refund,720,INR,DEBIT
+fixture-118,2026-07-14,NPS Contribution,6000,INR,DEBIT
+fixture-119,2026-07-15,Card Bill Payment,14000,INR,DEBIT
+fixture-120,2026-07-16,Street Books,750,INR,DEBIT

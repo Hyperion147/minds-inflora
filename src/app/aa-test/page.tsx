@@ -3,7 +3,7 @@ import { AaTestPanel } from "@/components/aa/AaTestPanel";
 import { getAppEnv } from "@/lib/env";
 
 export default function AaTestPage() {
-  let providerLabel = "Mock";
+  let providerLabel = "Demo provider";
   try {
     const env = getAppEnv();
     providerLabel =
@@ -11,14 +11,14 @@ export default function AaTestPage() {
         ? env.setu?.SETU_ENVIRONMENT === "production"
           ? "Setu Production"
           : "Setu Sandbox"
-        : "Mock";
+        : "Demo provider";
   } catch {
     providerLabel = "Configuration error";
   }
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
-      <Suspense fallback={<p className="text-sm text-zinc-600">Loading…</p>}>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
         <AaTestPanel providerLabel={providerLabel} />
       </Suspense>
     </main>

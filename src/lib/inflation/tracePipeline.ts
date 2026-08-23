@@ -6,6 +6,8 @@ import {
 } from "./normalizeTransactions";
 import type {
   AppCategoryId,
+  CategoryConfidence,
+  CategorizationMethod,
   CpiDataset,
   EngineTransactionInput,
   MerchantCategoryMapping,
@@ -21,6 +23,9 @@ export type CategoryTraceSample = {
   eligible: boolean;
   exclusionReason: string;
   categoryId: AppCategoryId;
+  categoryConfidence: CategoryConfidence;
+  categorizationMethod: CategorizationMethod;
+  categorizationSource: string | null;
 };
 
 export type InflationPipelineDiagnostics = {
@@ -73,6 +78,9 @@ export function traceInflationPipeline(input: {
         eligible: txn.eligible,
         exclusionReason: txn.exclusionReason,
         categoryId: txn.categoryId,
+        categoryConfidence: txn.categoryConfidence,
+        categorizationMethod: txn.categorizationMethod,
+        categorizationSource: txn.categorizationSource,
       })),
     likelyIssue:
       eligibleCount === 0

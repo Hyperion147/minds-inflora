@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const allowedDevOrigins = new Set<string>(["**.ngrok-free.dev"]);
+const allowedDevOrigins = new Set<string>();
 const redirectUri = process.env.AA_REDIRECT_URI;
 
 if (redirectUri) {

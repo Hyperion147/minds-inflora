@@ -27,6 +27,7 @@ export type {
   EngineTransactionInput,
   HeadlineComparison,
   HeadlineDirection,
+  InflationCalculationStatus,
   InfloraEngineInput,
   InfloraResult,
   MerchantCategoryMapping,

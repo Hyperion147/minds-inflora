@@ -19,6 +19,10 @@ export function normalizeSetuFiDataToEngineTransactions(
 
   for (const fip of session.fips ?? []) {
     for (const accountItem of fip.accounts ?? []) {
+      if (!hasUsableFiAccountData(accountItem)) {
+        continue;
+      }
+
       const deposit = asDepositJson(accountItem);
       if (!deposit?.account) continue;
 
@@ -35,6 +39,23 @@ export function normalizeSetuFiDataToEngineTransactions(
   }
 
   return dedupeEngineTransactions(collected);
+}
+
+export function hasUsableFiAccountData(accountItem: FIFetchAccountItem): boolean {
+  const status = normalizeFiAccountStatus(accountItem.FIstatus ?? accountItem.status);
+  if (!status) {
+    return true;
+  }
+
+  return status === "READY" || status === "DELIVERED";
+}
+
+export function normalizeFiAccountStatus(status: string | undefined): string | null {
+  if (!status?.trim()) {
+    return null;
+  }
+
+  return status.trim().toUpperCase();
 }
 
 export function normalizeSetuDepositTransaction(

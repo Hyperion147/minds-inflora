@@ -11,6 +11,8 @@ import type {
   DataSessionResult,
   FinancialDataResult,
   SessionListResult,
+  SessionListItem,
+  SessionStatus,
 } from "./types";
 import { AaError } from "./types";
 
@@ -88,6 +90,25 @@ export class AaService {
     }
 
     const dataRange = status.dataRange ?? getConfiguredDataRange(this.env);
+
+    const reusableSession = await this.findReusableSession(consentId.trim());
+    if (reusableSession) {
+      console.info("[AA] reusing session", {
+        provider: this.provider.name,
+        consentId: maskId(consentId.trim()),
+        sessionId: maskId(reusableSession.sessionId),
+        status: reusableSession.status,
+      });
+
+      return {
+        sessionId: reusableSession.sessionId,
+        consentId: consentId.trim(),
+        status: reusableSession.status,
+        dataRange,
+        reused: true,
+      };
+    }
+
     const session = await this.provider.createFinancialDataSession(
       consentId.trim(),
       dataRange,
@@ -109,7 +130,9 @@ export class AaService {
       throw new AaError("MISSING_SESSION_ID", "sessionId is required.", 400);
     }
 
-    const result = await this.provider.getFinancialData(sessionId.trim());
+    const result = await retryTransientAaOperation(() =>
+      this.provider.getFinancialData(sessionId.trim()),
+    );
 
     console.info("[AA] session data", {
       provider: this.provider.name,
@@ -166,8 +189,112 @@ export class AaService {
     }
     return this.provider.listDataSessions(consentId.trim());
   }
+
+  private async findReusableSession(
+    consentId: string,
+  ): Promise<{ sessionId: string; status: SessionStatus } | null> {
+    if (!this.provider.listDataSessions) {
+      return null;
+    }
+
+    const sessions = await this.provider.listDataSessions(consentId);
+    const reusable = pickReusableSession(sessions.sessions);
+    if (!reusable) {
+      return null;
+    }
+
+    return {
+      sessionId: reusable.sessionId,
+      status: reusable.status,
+    };
+  }
 }
 
 export function getAaService(): AaService {
   return new AaService();
+}
+
+const REUSABLE_SESSION_STATUSES: SessionStatus[] = [
+  "PENDING",
+  "ACTIVE",
+  "COMPLETED",
+  "PARTIAL",
+];
+
+function pickReusableSession(
+  sessions: SessionListItem[],
+): { sessionId: string; status: SessionStatus } | null {
+  const sorted = [...sessions].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+
+  const latest = sorted[0];
+  if (!latest) {
+    return null;
+  }
+
+  const normalizedStatus = normalizeSessionStatus(latest.status);
+  if (
+    normalizedStatus &&
+    REUSABLE_SESSION_STATUSES.includes(normalizedStatus)
+  ) {
+    return {
+      sessionId: latest.sessionId,
+      status: normalizedStatus,
+    };
+  }
+
+  return null;
+}
+
+function normalizeSessionStatus(status: string): SessionStatus | null {
+  const upper = status.toUpperCase() as SessionStatus;
+  const allowed: SessionStatus[] = [
+    "ACTIVE",
+    "PENDING",
+    "COMPLETED",
+    "EXPIRED",
+    "FAILED",
+    "PARTIAL",
+  ];
+  return allowed.includes(upper) ? upper : null;
+}
+
+async function retryTransientAaOperation<T>(
+  operation: () => Promise<T>,
+  retries = 2,
+): Promise<T> {
+  let attempt = 0;
+
+  while (true) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt >= retries || !isTransientAaError(error)) {
+        throw error;
+      }
+
+      attempt += 1;
+      await sleep(250 * attempt);
+    }
+  }
+}
+
+function isTransientAaError(error: unknown): boolean {
+  if (!(error instanceof AaError)) {
+    return false;
+  }
+
+  return (
+    error.statusCode >= 500 ||
+    error.statusCode === 429 ||
+    error.code === "SETU_NETWORK_ERROR" ||
+    error.code === "SETU_RATE_LIMITED" ||
+    error.code === "SETU_SERVER_ERROR" ||
+    error.code === "SETU_REQUEST_FAILED"
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       consentId: session.consentId,
       status: session.status,
       dataRange: session.dataRange,
+      reused: session.reused ?? false,
     });
   } catch (error) {
     return jsonError(error);

@@ -13,6 +13,7 @@ import {
 import {
   dedupeEngineTransactions,
   deterministicTxnId,
+  hasUsableFiAccountData,
   normalizeSetuDepositTransaction,
   normalizeSetuFiDataToEngineTransactions,
   normalizeTxnType,
@@ -503,6 +504,70 @@ describe("DEPOSIT transaction normalization", () => {
     expect(txns.map((t) => t.id).sort()).toEqual(["DUP", "UNIQUE"]);
   });
 
+  it("normalizes only READY or DELIVERED account data in partial sandbox responses", () => {
+    const session: FIDataFetchResponseV2 = {
+      id: "sess-partial",
+      consentId: "cons-1",
+      status: "PARTIAL",
+      format: "json",
+      dataRange: { from: "2026-01-01T00:00:00Z", to: "2026-07-01T00:00:00Z" },
+      fips: [
+        {
+          fipID: "setu-fip",
+          accounts: [
+            {
+              maskedAccNumber: "XXXX3365",
+              linkRefNumber: "L1",
+              FIstatus: "TIMEOUT",
+              data: {
+                account: {
+                  type: "deposit",
+                  transactions: {
+                    transaction: [
+                      {
+                        txnId: "TIMEOUT-TXN",
+                        amount: "10",
+                        type: "DEBIT",
+                        valueDate: "2026-07-01",
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            {
+              maskedAccNumber: "XXXX4411",
+              linkRefNumber: "L2",
+              FIstatus: "READY",
+              data: {
+                account: {
+                  type: "deposit",
+                  transactions: {
+                    transaction: [
+                      {
+                        txnId: "READY-TXN",
+                        amount: "20",
+                        type: "DEBIT",
+                        valueDate: "2026-07-01",
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(hasUsableFiAccountData(session.fips![0]!.accounts[0]!)).toBe(false);
+    expect(hasUsableFiAccountData(session.fips![0]!.accounts[1]!)).toBe(true);
+
+    const txns = normalizeSetuFiDataToEngineTransactions(session);
+    expect(txns).toHaveLength(1);
+    expect(txns[0]?.id).toBe("READY-TXN");
+  });
+
   it("dedupe helper keeps first occurrence", () => {
     const list = dedupeEngineTransactions([
       {
@@ -710,5 +775,273 @@ describe("FI session status handling", () => {
     await service.createSession("consent-1");
 
     expect(sessionRange).toEqual(consentRange);
+  });
+
+  it("AaService reuses the latest non-expired FI session instead of creating a duplicate", async () => {
+    const consentRange = {
+      from: "2026-02-22T00:00:00.000Z",
+      to: "2026-08-22T12:00:00.000Z",
+    };
+    const createFinancialDataSession = vi.fn();
+    const provider: AccountAggregatorProvider = {
+      name: "setu",
+      createConsent: vi.fn() as never,
+      getConsentStatus: vi.fn().mockResolvedValue({
+        consentId: "consent-1",
+        status: "ACTIVE",
+        canFetchData: true,
+        dataRange: consentRange,
+      }),
+      createFinancialDataSession,
+      getFinancialData: vi.fn() as never,
+      listDataSessions: vi.fn().mockResolvedValue({
+        consentId: "consent-1",
+        sessions: [
+          {
+            sessionId: "session-old",
+            status: "FAILED",
+            createdAt: "2026-08-23T09:00:00.000Z",
+          },
+          {
+            sessionId: "session-reuse",
+            status: "PENDING",
+            createdAt: "2026-08-23T10:00:00.000Z",
+          },
+        ],
+      }),
+    };
+    const service = new AaService(provider, {
+      AA_PROVIDER: "setu",
+      APP_BASE_URL: "http://localhost:3000",
+      AA_TRANSACTION_LOOKBACK_MONTHS: 6,
+    });
+
+    const session = await service.createSession("consent-1");
+
+    expect(session).toMatchObject({
+      sessionId: "session-reuse",
+      consentId: "consent-1",
+      status: "PENDING",
+      reused: true,
+      dataRange: consentRange,
+    });
+    expect(createFinancialDataSession).not.toHaveBeenCalled();
+  });
+
+  it("AaService creates a new FI session when the latest provider session is FAILED", async () => {
+    const consentRange = {
+      from: "2026-02-22T00:00:00.000Z",
+      to: "2026-08-22T12:00:00.000Z",
+    };
+    const createFinancialDataSession = vi.fn().mockResolvedValue({
+      sessionId: "session-new",
+      consentId: "consent-1",
+      status: "PENDING",
+      dataRange: consentRange,
+    });
+    const provider: AccountAggregatorProvider = {
+      name: "setu",
+      createConsent: vi.fn() as never,
+      getConsentStatus: vi.fn().mockResolvedValue({
+        consentId: "consent-1",
+        status: "ACTIVE",
+        canFetchData: true,
+        dataRange: consentRange,
+      }),
+      createFinancialDataSession,
+      getFinancialData: vi.fn() as never,
+      listDataSessions: vi.fn().mockResolvedValue({
+        consentId: "consent-1",
+        sessions: [
+          {
+            sessionId: "session-failed",
+            status: "FAILED",
+            createdAt: "2026-08-23T10:00:00.000Z",
+          },
+          {
+            sessionId: "session-completed",
+            status: "COMPLETED",
+            createdAt: "2026-08-23T09:00:00.000Z",
+          },
+        ],
+      }),
+    };
+    const service = new AaService(provider, {
+      AA_PROVIDER: "setu",
+      APP_BASE_URL: "http://localhost:3000",
+      AA_TRANSACTION_LOOKBACK_MONTHS: 6,
+    });
+
+    const session = await service.createSession("consent-1");
+
+    expect(session.sessionId).toBe("session-new");
+    expect(session.reused).toBeUndefined();
+    expect(createFinancialDataSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("AaService retries transient FI data fetch failures before succeeding", async () => {
+    const provider: AccountAggregatorProvider = {
+      name: "setu",
+      createConsent: vi.fn() as never,
+      getConsentStatus: vi.fn() as never,
+      createFinancialDataSession: vi.fn() as never,
+      getFinancialData: vi
+        .fn()
+        .mockRejectedValueOnce(
+          new AaError(
+            "SETU_SERVER_ERROR",
+            "Setu AA Gateway is temporarily unavailable.",
+            502,
+          ),
+        )
+        .mockResolvedValueOnce({
+          sessionId: "session-1",
+          consentId: "consent-1",
+          status: "COMPLETED",
+          transactions: loadDemoTransactionsCsv().slice(0, 2),
+          transactionCount: 2,
+        }),
+    };
+    const service = new AaService(provider, {
+      AA_PROVIDER: "setu",
+      APP_BASE_URL: "http://localhost:3000",
+      AA_TRANSACTION_LOOKBACK_MONTHS: 6,
+    });
+
+    const result = await service.getTransactions("session-1");
+
+    expect(result.status).toBe("COMPLETED");
+    expect(result.transactionCount).toBe(2);
+    expect(provider.getFinancialData).toHaveBeenCalledTimes(2);
+  });
+
+  it("SetuAaProvider exposes FAILED session details instead of hiding them", async () => {
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        id: "session-1",
+        consentId: "consent-1",
+        status: "FAILED",
+        format: "json",
+        dataRange: {
+          from: "2026-02-22T00:00:00.000Z",
+          to: "2026-08-22T12:00:00.000Z",
+        },
+        traceId: "trace-123",
+        txnid: "txn-123",
+        fips: [
+          {
+            fipID: "setu-fip",
+            accounts: [
+              {
+                maskedAccNumber: "XXXX1111",
+                linkRefNumber: "link-1",
+                FIstatus: "TIMEOUT",
+                description: "fip timeout",
+                data: {},
+              },
+            ],
+          },
+        ],
+      },
+      status: 200,
+    });
+
+    const provider = new SetuAaProvider(setuEnv);
+    (provider as unknown as { client: unknown }).client = {
+      http: { get },
+    };
+
+    const result = await provider.getFinancialData("session-1");
+
+    expect(result).toMatchObject({
+      sessionId: "session-1",
+      consentId: "consent-1",
+      status: "FAILED",
+      traceId: "trace-123",
+      txnId: "txn-123",
+    });
+    expect(result.providerMessage).toContain("FAILED");
+    expect(result.fips).toEqual([
+      {
+        fipId: "setu-fip",
+        accounts: [
+          {
+            maskedAccNumber: "XXXX1111",
+            linkRefNumber: "link-1",
+            status: "TIMEOUT",
+            description: "fip timeout",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("SetuAaProvider exposes PARTIAL session data and account statuses", async () => {
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        id: "session-partial",
+        consentId: "consent-1",
+        status: "PARTIAL",
+        format: "json",
+        dataRange: {
+          from: "2026-02-22T00:00:00.000Z",
+          to: "2026-08-22T12:00:00.000Z",
+        },
+        traceId: "trace-partial",
+        fips: [
+          {
+            fipID: "setu-fip",
+            accounts: [
+              {
+                maskedAccNumber: "XXXX3365",
+                linkRefNumber: "link-timeout",
+                FIstatus: "TIMEOUT",
+                data: {
+                  account: {
+                    type: "deposit",
+                    transactions: { transaction: [] },
+                  },
+                },
+              },
+              {
+                maskedAccNumber: "XXXX4411",
+                linkRefNumber: "link-ready",
+                FIstatus: "READY",
+                data: {
+                  account: {
+                    type: "deposit",
+                    transactions: {
+                      transaction: [
+                        {
+                          txnId: "READY-TXN",
+                          amount: "20",
+                          type: "DEBIT",
+                          valueDate: "2026-07-01",
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      status: 200,
+    });
+
+    const provider = new SetuAaProvider(setuEnv);
+    (provider as unknown as { client: unknown }).client = {
+      http: { get },
+    };
+
+    const result = await provider.getFinancialData("session-partial");
+
+    expect(result.status).toBe("PARTIAL");
+    expect(result.transactionCount).toBe(1);
+    expect(result.transactions?.[0]?.id).toBe("READY-TXN");
+    expect(result.providerMessage).toContain("PARTIAL");
+    expect(result.hasUsableAccountData).toBe(true);
+    expect(result.fips?.[0]?.accounts).toHaveLength(2);
   });
 });

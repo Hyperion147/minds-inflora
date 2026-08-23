@@ -165,6 +165,8 @@ async function seed() {
     const inflationAnalysis = await saveInflationAnalysis(
       user.id,
       {
+        calculationStatus: "OK",
+        hasSufficientCategorizedSpend: true,
         referenceMonth: "2024-07",
         totalEligibleSpend: 2750.0,
         personalInflation: 6.23,
@@ -201,6 +203,8 @@ async function seed() {
             per100Impact: 1.22,
           },
         ],
+        categorizedSpend: 2750.0,
+        mappedCategoryCount: 4,
         uncategorizedSpend: 0.0,
         uncategorizedPercentage: 0.0,
         excludedCount: 1,

@@ -46,6 +46,19 @@ export type DataSessionResult = {
   consentId: string;
   status: SessionStatus;
   dataRange: DataRange;
+  reused?: boolean;
+};
+
+export type FinancialDataAccountStatus = {
+  maskedAccNumber?: string;
+  linkRefNumber?: string;
+  status?: string;
+  description?: string;
+};
+
+export type FinancialDataFipStatus = {
+  fipId: string;
+  accounts: FinancialDataAccountStatus[];
 };
 
 export type FinancialDataResult = {
@@ -55,6 +68,11 @@ export type FinancialDataResult = {
   /** Present when status is COMPLETED or PARTIAL with usable data */
   transactions?: EngineTransactionInput[];
   transactionCount?: number;
+  traceId?: string;
+  txnId?: string;
+  providerMessage?: string;
+  fips?: FinancialDataFipStatus[];
+  hasUsableAccountData?: boolean;
 };
 
 export type SessionListItem = {

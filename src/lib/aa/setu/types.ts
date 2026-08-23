@@ -140,6 +140,8 @@ export type FIFetchAccountItem = {
   maskedAccNumber?: string;
   linkRefNumber?: string;
   FIstatus?: string;
+  status?: string;
+  description?: string;
   data?: DepositJSON | Record<string, unknown>;
 };
 
@@ -156,6 +158,10 @@ export type FIDataFetchResponseV2 = {
   format: "json" | "xml";
   dataRange: DataRange;
   fips: FIFetchFipItem[] | null;
+  traceId?: string;
+  txnid?: string;
+  timestamp?: string;
+  ver?: string;
 };
 
 export type DataSessionsListResponse = {
@@ -172,5 +178,8 @@ export type SetuErrorBody = {
   errorCode?: string;
   errorMsg?: string;
   traceId?: string;
+  txnid?: string;
+  timestamp?: string;
+  ver?: string;
   message?: string;
 };

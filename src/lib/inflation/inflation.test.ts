@@ -210,6 +210,49 @@ describe("eligibility exclusions", () => {
     expect(classifyEligibility(normalized!)).toBe("eligible");
   });
 
+  it("excludes Setu sandbox cash and fund-transfer debit rails from consumer spending", () => {
+    const cases: Array<[EngineTransactionInput, string]> = [
+      [
+        {
+          id: "setu-atm-de",
+          date: "2026-08-20T10:00:00+05:30",
+          description: "ATM/DE/77506833375/Lagan Shere/DSWV/38636371",
+          amount: 1500,
+          currency: "INR",
+          type: "DEBIT",
+        },
+        "non_consumption",
+      ],
+      [
+        {
+          id: "setu-cash-de",
+          date: "2026-08-20T10:00:00+05:30",
+          description: "CASH/DE/887147222217/Gokul Manda/UNIF/8818442",
+          amount: 2000,
+          currency: "INR",
+          type: "DEBIT",
+        },
+        "non_consumption",
+      ],
+      [
+        {
+          id: "setu-ft-de",
+          date: "2026-08-20T10:00:00+05:30",
+          description: "FT/DE/887147222217/Someone Else/UNIF/8818442",
+          amount: 2000,
+          currency: "INR",
+          type: "DEBIT",
+        },
+        "non_consumption",
+      ],
+    ];
+
+    for (const [txn, reason] of cases) {
+      const [normalized] = normalizeTransactions([txn]);
+      expect(classifyEligibility(normalized!)).toBe(reason);
+    }
+  });
+
   it("rejects invalid amounts and unknown currencies", () => {
     expect(
       classifyEligibility(
@@ -278,7 +321,11 @@ describe("basic calculation", () => {
       merchantMapping: mapping,
     });
 
+    expect(result.calculationStatus).toBe("OK");
+    expect(result.hasSufficientCategorizedSpend).toBe(true);
     expect(result.totalEligibleSpend).toBe(1000);
+    expect(result.categorizedSpend).toBe(1000);
+    expect(result.mappedCategoryCount).toBe(2);
     expect(result.eligibleCount).toBe(2);
     expect(result.excludedCount).toBe(1);
 
@@ -399,7 +446,11 @@ describe("uncategorized & exclusions", () => {
       merchantMapping: mapping,
     });
 
+    expect(result.calculationStatus).toBe("INSUFFICIENT_CATEGORIZATION_COVERAGE");
+    expect(result.hasSufficientCategorizedSpend).toBe(false);
     expect(result.personalInflation).toBe(0);
+    expect(result.categorizedSpend).toBe(0);
+    expect(result.mappedCategoryCount).toBe(0);
     expect(result.uncategorizedSpend).toBe(100);
     expect(result.uncategorizedPercentage).toBe(100);
     expect(result.categories).toHaveLength(0);
@@ -430,8 +481,12 @@ describe("uncategorized & exclusions", () => {
     });
 
     expect(result.totalEligibleSpend).toBe(2239042);
+    expect(result.calculationStatus).toBe("INSUFFICIENT_CATEGORIZATION_COVERAGE");
+    expect(result.hasSufficientCategorizedSpend).toBe(false);
     expect(result.personalInflation).toBe(0);
     expect(result.topDrivers).toHaveLength(0);
+    expect(result.categorizedSpend).toBe(0);
+    expect(result.mappedCategoryCount).toBe(0);
     expect(result.uncategorizedSpend).toBe(2239042);
     expect(diagnostics.likelyIssue).toBe("NO_MAPPED_CATEGORIES");
     expect(diagnostics.mappedCategoryCount).toBe(0);
@@ -442,6 +497,67 @@ describe("uncategorized & exclusions", () => {
       categoryId: "uncategorized",
     });
   });
+
+  it("categorizes Setu-style card descriptions by embedded merchant tokens, not people's names", () => {
+    const transactions: EngineTransactionInput[] = [
+      {
+        id: "setu-card-amazon",
+        date: "2026-07-01T10:00:00+05:30",
+        description: "CARD/DE/596392116311/Some Person/Amazon/38259647",
+        amount: 1200,
+        currency: "INR",
+        type: "DEBIT",
+      },
+      {
+        id: "setu-card-person-only",
+        date: "2026-07-01T10:05:00+05:30",
+        description: "CARD/DE/596392116312/Dhanush Bedi/APYP/38259648",
+        amount: 800,
+        currency: "INR",
+        type: "DEBIT",
+      },
+    ];
+
+    const categorized = categorizeTransactions(
+      assessEligibility(normalizeTransactions(transactions)),
+      mapping,
+    );
+
+    expect(categorized[0]?.eligible).toBe(true);
+    expect(categorized[0]?.categoryId).toBe("household_goods");
+    expect(categorized[1]?.eligible).toBe(true);
+    expect(categorized[1]?.categoryId).toBe("uncategorized");
+  });
+
+  it("reduces false eligible uncategorized spend for Setu sandbox cash/transfer formats", () => {
+    const result = calculateInflora({
+      transactions: [
+        {
+          id: "cash-1",
+          date: "2026-08-20T10:00:00+05:30",
+          description: "CASH/DE/887147222217/Gokul Manda/UNIF/8818442",
+          amount: 2000,
+          currency: "INR",
+          type: "DEBIT",
+        },
+        {
+          id: "card-1",
+          date: "2026-08-20T10:05:00+05:30",
+          description: "CARD/DE/596392116311/Some Person/Amazon/38259647",
+          amount: 1200,
+          currency: "INR",
+          type: "DEBIT",
+        },
+      ],
+      cpi: miniCpi(),
+      merchantMapping: mapping,
+    });
+
+    expect(result.eligibleCount).toBe(1);
+    expect(result.excludedCount).toBe(1);
+    expect(result.totalEligibleSpend).toBe(1200);
+    expect(result.uncategorizedSpend).toBe(0);
+  });
 });
 
 describe("edge cases", () => {
@@ -451,6 +567,8 @@ describe("edge cases", () => {
       cpi: miniCpi(),
       merchantMapping: mapping,
     });
+    expect(empty.calculationStatus).toBe("OK");
+    expect(empty.hasSufficientCategorizedSpend).toBe(true);
     expect(empty.personalInflation).toBe(0);
     expect(empty.totalEligibleSpend).toBe(0);
     expect(Number.isFinite(empty.differenceFromHeadline)).toBe(true);
@@ -469,8 +587,43 @@ describe("edge cases", () => {
       cpi: miniCpi(),
       merchantMapping: mapping,
     });
+    expect(creditsOnly.calculationStatus).toBe("OK");
+    expect(creditsOnly.hasSufficientCategorizedSpend).toBe(true);
     expect(creditsOnly.personalInflation).toBe(0);
     expect(creditsOnly.eligibleCount).toBe(0);
+  });
+
+  it("keeps a valid calculation when categorization is partial but categorized spend exists", () => {
+    const result = calculateInflora({
+      transactions: [
+        {
+          id: "mapped",
+          date: "2026-07-01",
+          merchant: "Swiggy",
+          amount: 700,
+          currency: "INR",
+          type: "DEBIT",
+        },
+        {
+          id: "uncategorized",
+          date: "2026-07-02",
+          merchant: "Mystery Merchant",
+          amount: 300,
+          currency: "INR",
+          type: "DEBIT",
+        },
+      ],
+      cpi: miniCpi(),
+      merchantMapping: mapping,
+    });
+
+    expect(result.calculationStatus).toBe("OK");
+    expect(result.hasSufficientCategorizedSpend).toBe(true);
+    expect(result.totalEligibleSpend).toBe(1000);
+    expect(result.categorizedSpend).toBe(700);
+    expect(result.mappedCategoryCount).toBe(1);
+    expect(result.personalInflation).toBeCloseTo(3.668, 5);
+    expect(result.uncategorizedSpend).toBe(300);
   });
 
   it("deduplicates by id and tolerates missing merchants", () => {
@@ -545,8 +698,12 @@ describe("demo data pack integration", () => {
     });
 
     // Salary credit excluded
+    expect(result.calculationStatus).toBe("OK");
+    expect(result.hasSufficientCategorizedSpend).toBe(true);
     expect(result.excludedCount).toBe(1);
     expect(result.totalEligibleSpend).toBe(13759);
+    expect(result.categorizedSpend).toBeGreaterThan(0);
+    expect(result.mappedCategoryCount).toBeGreaterThan(0);
     expect(result.personalInflation).toBeGreaterThan(0);
     expect(result.uncategorizedSpend).toBe(0);
     expect(result.topDrivers).toHaveLength(3);

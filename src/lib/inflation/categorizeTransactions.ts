@@ -24,6 +24,7 @@ export function categorizeTransactions(
 
     const categoryId =
       matcher(txn.merchantNormalized) ??
+      matchStructuredDescription(txn.description, matcher) ??
       matcher(normalizeMerchantName(txn.description)) ??
       UNCATEGORIZED;
 
@@ -67,6 +68,47 @@ function buildMerchantMatcher(
     return null;
   };
 }
+
+function matchStructuredDescription(
+  description: string | undefined,
+  matcher: MerchantMatcher,
+): AppCategoryId | null {
+  if (!description?.includes("/")) {
+    return null;
+  }
+
+  for (const segment of extractStructuredDescriptionSegments(description)) {
+    const category = matcher(segment);
+    if (category) {
+      return category;
+    }
+  }
+
+  return null;
+}
+
+function extractStructuredDescriptionSegments(description: string): string[] {
+  return description
+    .split("/")
+    .map((part) => normalizeMerchantName(part))
+    .filter((part) => {
+      if (!part) return false;
+      if (STRUCTURED_NOISE_TOKENS.has(part)) return false;
+      if (/^\d+$/.test(part.replace(/\s+/g, ""))) return false;
+      if (/^[a-z]{1,4}$/.test(part)) return false;
+      return true;
+    });
+}
+
+const STRUCTURED_NOISE_TOKENS = new Set([
+  "atm",
+  "cash",
+  "card",
+  "ft",
+  "de",
+  "dr",
+  "cr",
+]);
 
 /** True when `key` appears as a contiguous word-boundary phrase inside `text`. */
 function containsAsPhrase(text: string, key: string): boolean {

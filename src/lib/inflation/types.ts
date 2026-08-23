@@ -131,7 +131,13 @@ export type HeadlineComparison = {
   direction: HeadlineDirection;
 };
 
+export type InflationCalculationStatus =
+  | "OK"
+  | "INSUFFICIENT_CATEGORIZATION_COVERAGE";
+
 export type InfloraResult = {
+  calculationStatus: InflationCalculationStatus;
+  hasSufficientCategorizedSpend: boolean;
   referenceMonth: string;
   totalEligibleSpend: number;
   personalInflation: number;
@@ -140,6 +146,8 @@ export type InfloraResult = {
   direction: HeadlineDirection;
   categories: CategoryDriver[];
   topDrivers: CategoryDriver[];
+  categorizedSpend: number;
+  mappedCategoryCount: number;
   uncategorizedSpend: number;
   uncategorizedPercentage: number;
   excludedCount: number;

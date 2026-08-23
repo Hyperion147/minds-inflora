@@ -1,11 +1,15 @@
 import type { SetuEnv } from "@/lib/env";
 import type { AccountAggregatorProvider } from "../provider";
-import { normalizeSetuFiDataToEngineTransactions } from "../normalize";
+import {
+  hasUsableFiAccountData,
+  normalizeSetuFiDataToEngineTransactions,
+} from "../normalize";
 import type {
   ConsentStatusResult,
   CreateConsentResult,
   DataRange,
   DataSessionResult,
+  FinancialDataFipStatus,
   FinancialDataResult,
   SessionListResult,
 } from "../types";
@@ -93,24 +97,25 @@ export class SetuAaProvider implements AccountAggregatorProvider {
   async getFinancialData(sessionId: string): Promise<FinancialDataResult> {
     const response = await getSetuFiSession(this.client, sessionId);
     const status = mapSessionStatus(response.status);
+    const fips = mapFipStatuses(response);
+    const providerMessage = buildProviderMessage(status, fips, response.traceId);
+    const hasUsableAccountData = hasAnyUsableAccountData(response);
 
     if (status === "PENDING" || status === "ACTIVE") {
       return {
         sessionId: response.id,
         consentId: response.consentId,
         status,
+        traceId: response.traceId,
+        txnId: response.txnid,
+        providerMessage,
+        fips,
+        hasUsableAccountData,
       };
     }
 
-    if (status === "FAILED" || status === "EXPIRED") {
-      throw new AaError(
-        "FI_SESSION_FAILED",
-        `Financial information session ${status.toLowerCase()}.`,
-        400,
-      );
-    }
-
-    // COMPLETED or PARTIAL — normalize DEPOSIT transactions
+    // COMPLETED or PARTIAL — normalize DEPOSIT transactions.
+    // FAILED/EXPIRED are also returned so the route/UI can surface the real provider state.
     const transactions = normalizeSetuFiDataToEngineTransactions(response);
     return {
       sessionId: response.id,
@@ -118,6 +123,11 @@ export class SetuAaProvider implements AccountAggregatorProvider {
       status,
       transactions,
       transactionCount: transactions.length,
+      traceId: response.traceId,
+      txnId: response.txnid,
+      providerMessage,
+      fips,
+      hasUsableAccountData,
     };
   }
 
@@ -168,4 +178,90 @@ function mapSessionStatus(status: string): SessionStatus {
   const upper = status.toUpperCase() as SessionStatus;
   if (allowed.includes(upper)) return upper;
   return "FAILED";
+}
+
+function mapFipStatuses(response: {
+  fips: Array<{
+    fipID: string;
+    accounts: Array<{
+      maskedAccNumber?: string;
+      linkRefNumber?: string;
+      FIstatus?: string;
+      status?: string;
+      description?: string;
+    }>;
+  }> | null;
+}): FinancialDataFipStatus[] {
+  return (response.fips ?? []).map((fip) => ({
+    fipId: fip.fipID,
+    accounts: (fip.accounts ?? []).map((account) => ({
+      maskedAccNumber: account.maskedAccNumber,
+      linkRefNumber: account.linkRefNumber,
+      status: account.FIstatus ?? account.status,
+      description: account.description,
+    })),
+  }));
+}
+
+function buildProviderMessage(
+  status: SessionStatus,
+  fips: FinancialDataFipStatus[],
+  traceId?: string,
+): string | undefined {
+  const accountStates = fips.flatMap((fip) =>
+    fip.accounts.map((account) => {
+      const parts = [
+        fip.fipId,
+        account.maskedAccNumber,
+        account.status,
+        account.description,
+      ].filter(Boolean);
+      return parts.join(" / ");
+    }),
+  );
+
+  const details = accountStates.length > 0 ? ` Account statuses: ${accountStates.join("; ")}.` : "";
+  const trace = traceId ? ` Trace ID: ${traceId}.` : "";
+
+  if (status === "FAILED") {
+    return `Setu sandbox marked this FI session as FAILED.${details}${trace}`.trim();
+  }
+
+  if (status === "EXPIRED") {
+    return `Setu sandbox marked this FI session as EXPIRED.${details}${trace}`.trim();
+  }
+
+  if (status === "PENDING" || status === "ACTIVE") {
+    return `Setu sandbox is still processing this FI session.${details}${trace}`.trim();
+  }
+
+  if (status === "PARTIAL") {
+    return `Setu sandbox returned PARTIAL FI data.${details}${trace}`.trim();
+  }
+
+  if (status === "COMPLETED") {
+    return `Setu sandbox returned COMPLETED FI data.${trace}`.trim();
+  }
+
+  return undefined;
+}
+
+function hasAnyUsableAccountData(response: {
+  fips: Array<{
+    accounts: Array<{
+      FIstatus?: string;
+      status?: string;
+      data?: Record<string, unknown>;
+    }>;
+  }> | null;
+}): boolean {
+  return (response.fips ?? []).some((fip) =>
+    (fip.accounts ?? []).some((account) => {
+      if (!hasUsableFiAccountData(account)) {
+        return false;
+      }
+
+      return Boolean(account.data);
+    }),
+  );
 }

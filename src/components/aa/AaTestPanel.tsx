@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { pollSessionTransactions } from "@/lib/aa/sessionPolling";
 import type { EngineTransactionInput, InfloraResult } from "@/lib/inflation/types";
 import type { InflationPipelineDiagnostics } from "@/lib/inflation";
 import { formatDisplayDate, formatInr } from "@/lib/utils";
@@ -15,8 +16,8 @@ function maskId(id: string): string {
 
 type ApiError = { error?: { code?: string; message?: string } };
 
-const POLL_MS = 3000;
-const POLL_TIMEOUT_MS = 60_000;
+const CONSENT_POLL_MS = 3_000;
+const FI_POLL_WINDOW_MS = 4 * 60_000;
 const CONSENT_POLL_TIMEOUT_MS = 90_000;
 
 export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
@@ -38,6 +39,18 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
   const [error, setError] = useState<string | null>(queryError);
   const [busy, setBusy] = useState<string | null>(null);
   const [phase, setPhase] = useState<string>("Not connected");
+  const [phaseDetail, setPhaseDetail] = useState<string | null>(null);
+  const [sessionFips, setSessionFips] = useState<
+    Array<{
+      fipId?: string;
+      accounts?: Array<{
+        maskedAccNumber?: string;
+        linkRefNumber?: string;
+        status?: string;
+        description?: string;
+      }>;
+    }>
+  >([]);
   const [mobileNumber, setMobileNumber] = useState("");
   const [availability, setAvailability] = useState<
     Array<{ aa: string; vua: string; status: boolean }>
@@ -63,6 +76,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     } else {
       setPhase(`Consent ${data.status}`);
     }
+    setPhaseDetail(null);
     return data;
   }, []);
 
@@ -99,43 +113,84 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
   );
 
   const fetchTransactionsForSession = useCallback(async (id: string) => {
-    const started = Date.now();
-    while (Date.now() - started < POLL_TIMEOUT_MS) {
-      const res = await fetch(
-        `/api/aa/transactions?sessionId=${encodeURIComponent(id)}`,
-        { cache: "no-store" },
-      );
-      const data = (await res.json()) as {
-        status?: string;
-        transactions?: EngineTransactionInput[];
-        transactionCount?: number;
-      } & ApiError;
+    setPhase("Fetching your financial data...");
+    setPhaseDetail("Waiting for Setu to finish preparing FI data.");
 
-      if (!res.ok) {
-        throw new Error(
-          data.error?.message ?? "Unable to fetch session transactions.",
+    const result = await pollSessionTransactions({
+      sessionId: id,
+      maxDurationMs: FI_POLL_WINDOW_MS,
+      sleep,
+      fetchSession: async (sessionId) => {
+        const res = await fetch(
+          `/api/aa/transactions?sessionId=${encodeURIComponent(sessionId)}`,
+          { cache: "no-store" },
         );
-      }
+        const data = (await res.json()) as {
+          status?: string;
+          transactions?: EngineTransactionInput[];
+          transactionCount?: number;
+          traceId?: string;
+          txnId?: string;
+          providerMessage?: string;
+          fips?: Array<{
+            fipId?: string;
+            accounts?: Array<{
+              maskedAccNumber?: string;
+              linkRefNumber?: string;
+              status?: string;
+              description?: string;
+            }>;
+          }>;
+        } & ApiError;
 
-      setSessionStatus(data.status ?? null);
+        return {
+          ok: res.ok,
+          statusCode: res.status,
+          data,
+        };
+      },
+      onProgress: (progress) => {
+        if (progress.phase === "polling") {
+          setSessionStatus(progress.sessionStatus ?? "PENDING");
+          setPhase("Fetching your financial data...");
+          setPhaseDetail(
+            progress.sessionStatus
+              ? `Setu session is ${progress.sessionStatus}. This can take longer in sandbox mode.`
+              : "Setu is still processing your FI data.",
+          );
+          return;
+        }
 
-      if (data.status === "PENDING" || data.status === "ACTIVE") {
-        setPhase(`Session ${data.status}`);
-        await sleep(POLL_MS);
-        continue;
-      }
+        setPhase("Fetching your financial data...");
+        setPhaseDetail(
+          "Temporary Setu/network issue. Retrying automatically without starting a new FI session.",
+        );
+      },
+    });
 
-      if (data.status === "FAILED" || data.status === "EXPIRED") {
-        throw new Error(`FI session ${data.status?.toLowerCase()}.`);
-      }
-
-      const txns = data.transactions ?? [];
-      setTransactions(txns);
-      setPhase("Financial data ready");
-      return txns;
+    if (result.kind === "processing") {
+      setPhase("Financial data is still processing");
+      setPhaseDetail(
+        "Setu is taking longer than usual. You can retry safely and INFLORA will reuse the same FI session.",
+      );
+      return null;
     }
 
-    throw new Error("Timed out waiting for financial data (60s).");
+    if (result.kind === "failed") {
+      setSessionFips(result.fips ?? []);
+      setSessionStatus(result.status ?? "FAILED");
+      setPhase("Financial data fetch failed");
+      setPhaseDetail(formatSessionFailureDetails(result));
+      throw new Error(result.message);
+    }
+
+    setSessionStatus(result.status);
+    setSessionFips(result.fips ?? []);
+    const txns = result.transactions;
+    setTransactions(txns);
+    setPhase(result.status === "PARTIAL" ? "Partial financial data ready" : "Financial data ready");
+    setPhaseDetail(buildSessionSuccessDetail(result.status, txns.length, result));
+    return txns;
   }, []);
 
   const createDataSession = useCallback(
@@ -148,6 +203,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
       const data = (await res.json()) as {
         sessionId?: string;
         status?: string;
+        reused?: boolean;
       } & ApiError;
       if (!res.ok || !data.sessionId) {
         throw new Error(
@@ -157,7 +213,16 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
 
       setSessionId(data.sessionId);
       setSessionStatus(data.status ?? "PENDING");
-      setPhase(`Session ${data.status ?? "PENDING"}`);
+      setPhase(
+        data.status === "COMPLETED" || data.status === "PARTIAL"
+          ? "Fetching your financial data..."
+          : `Session ${data.status ?? "PENDING"}`,
+      );
+      setPhaseDetail(
+        data.reused
+          ? "Reusing your existing FI session so we do not start another Setu fetch."
+          : null,
+      );
       return data.sessionId;
     },
     [],
@@ -183,7 +248,8 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
         }
 
         setPhase(`Waiting for consent approval (${status.status})`);
-        await sleep(POLL_MS);
+        setPhaseDetail(null);
+        await sleep(CONSENT_POLL_MS);
       }
 
       throw new Error("Timed out waiting for consent approval (90s).");
@@ -202,13 +268,18 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
         await waitForFetchableConsent(id);
         const newSessionId = await createDataSession(id);
         const txns = await fetchTransactionsForSession(newSessionId);
+        if (!txns) {
+          return;
+        }
         if (txns.length === 0) {
           setPhase("No transactions returned");
           return;
         }
         setPhase("Calculating inflation...");
+        setPhaseDetail(null);
         await calculateInflationForTransactions(txns);
         setPhase("Personal inflation ready");
+        setPhaseDetail(null);
       } finally {
         setBusy(null);
       }
@@ -248,7 +319,9 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     setTransactions([]);
     setSessionId(null);
     setSessionStatus(null);
+    setSessionFips([]);
     setPhase("Creating consent...");
+    setPhaseDetail(null);
     try {
       const res = await fetch("/api/aa/connect", {
         method: "POST",
@@ -300,6 +373,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
       }
       setAvailability(data.accounts ?? []);
       setPhase("Account availability loaded");
+      setPhaseDetail(null);
     } catch (err) {
       setError(
         err instanceof Error
@@ -317,6 +391,8 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     setError(null);
     setInflation(null);
     setDiagnostics(null);
+    setSessionFips([]);
+    setPhaseDetail(null);
     try {
       const status = await refreshStatus(consentId);
       if (!status.canFetchData) {
@@ -327,13 +403,27 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
 
       const newSessionId = await createDataSession(consentId);
       setBusy("poll");
-      await fetchTransactionsForSession(newSessionId);
+      const txns = await fetchTransactionsForSession(newSessionId);
+      if (!txns) {
+        return;
+      }
+      if (txns.length === 0) {
+        setPhase("No transactions returned");
+        return;
+      }
+      setPhase("Calculating inflation...");
+      setPhaseDetail(null);
+      await calculateInflationForTransactions(txns);
+      setPhase("Personal inflation ready");
+      setPhaseDetail(null);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
           : "Financial information could not be fetched.",
       );
+      setPhaseDetail(null);
+    } finally {
       setBusy(null);
     }
   }
@@ -342,6 +432,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
     if (transactions.length === 0) return;
     setBusy("inflate");
     setError(null);
+    setPhaseDetail(null);
     try {
       await calculateInflationForTransactions(transactions);
     } catch (err) {
@@ -398,6 +489,9 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             </div>
           ) : null}
         </dl>
+        {phaseDetail ? (
+          <p className="mt-3 text-sm text-zinc-600">{phaseDetail}</p>
+        ) : null}
       </header>
 
       {error ? (
@@ -458,7 +552,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
           className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
         >
           {busy === "session" || busy === "poll"
-            ? "Fetching…"
+            ? "Fetching your financial data..."
             : "Fetch My Financial Data"}
         </button>
         <button
@@ -511,14 +605,45 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
         </section>
       ) : null}
 
+      {sessionFips.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">FI Account Status</h2>
+          <ul className="space-y-1 text-sm">
+            {sessionFips.flatMap((fip) =>
+              (fip.accounts ?? []).map((account) => {
+                const isAvailable = isFetchableAccountStatus(account.status);
+                return (
+                  <li
+                    key={`${fip.fipId}-${account.linkRefNumber ?? account.maskedAccNumber ?? account.status}`}
+                    className={isAvailable ? "text-zinc-700" : "text-amber-800"}
+                  >
+                    {[fip.fipId, account.maskedAccNumber, account.status, account.description]
+                      .filter(Boolean)
+                      .join(" / ")}{" "}
+                    {!isAvailable ? "— unavailable" : "— used if data was available"}
+                  </li>
+                );
+              }),
+            )}
+          </ul>
+        </section>
+      ) : null}
+
       {inflation ? (
         <section className="space-y-3 border-t border-zinc-200 pt-6">
           <h2 className="text-lg font-semibold">Personal Inflation</h2>
+          {inflation.calculationStatus !== "OK" ? (
+            <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Personal inflation is unavailable because categorization coverage is insufficient for the fetched transactions.
+            </p>
+          ) : null}
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-zinc-500">Personal Inflation</dt>
               <dd className="text-xl font-semibold">
-                {inflation.personalInflation.toFixed(2)}%
+                {inflation.calculationStatus === "OK"
+                  ? `${inflation.personalInflation.toFixed(2)}%`
+                  : "Insufficient data"}
               </dd>
             </div>
             <div>
@@ -530,8 +655,9 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             <div>
               <dt className="text-zinc-500">Difference</dt>
               <dd className="font-medium">
-                {inflation.differenceFromHeadline.toFixed(2)} pp (
-                {inflation.direction})
+                {inflation.calculationStatus === "OK"
+                  ? `${inflation.differenceFromHeadline.toFixed(2)} pp (${inflation.direction})`
+                  : "Insufficient data"}
               </dd>
             </div>
             <div>
@@ -562,6 +688,10 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 {formatInr(diagnostics.uncategorizedSpend)} (
                 {diagnostics.uncategorizedPercentage.toFixed(2)}%).
               </p>
+              <p className="mt-1">
+                Categorized spend used for inflation:{" "}
+                {formatInr(inflation.categorizedSpend)}.
+              </p>
               {diagnostics.topCategorySamples.length > 0 ? (
                 <ul className="mt-2 space-y-1">
                   {diagnostics.topCategorySamples.map((sample) => (
@@ -584,4 +714,100 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatSessionFailureDetails(result: {
+  traceId?: string;
+  txnId?: string;
+  fips?: Array<{
+    fipId?: string;
+    accounts?: Array<{
+      maskedAccNumber?: string;
+      status?: string;
+      description?: string;
+    }>;
+  }>;
+}): string | null {
+  const states = (result.fips ?? []).flatMap((fip) =>
+    (fip.accounts ?? []).map((account) =>
+      [fip.fipId, account.maskedAccNumber, account.status, account.description]
+        .filter(Boolean)
+        .join(" / "),
+    ),
+  );
+
+  const details = [
+    states.length > 0 ? `Provider statuses: ${states.join("; ")}` : null,
+    result.traceId ? `Trace ID: ${result.traceId}` : null,
+    result.txnId ? `Transaction ID: ${result.txnId}` : null,
+  ].filter(Boolean);
+
+  return details.length > 0 ? details.join(" | ") : null;
+}
+
+function buildSessionSuccessDetail(
+  status: string,
+  transactionCount: number,
+  result: {
+    providerMessage?: string;
+    traceId?: string;
+    txnId?: string;
+    fips?: Array<{
+      fipId?: string;
+      accounts?: Array<{
+        maskedAccNumber?: string;
+        status?: string;
+        description?: string;
+      }>;
+    }>;
+  },
+): string | null {
+  const unavailable = (result.fips ?? []).flatMap((fip) =>
+    (fip.accounts ?? [])
+      .filter((account) => !isFetchableAccountStatus(account.status))
+      .map((account) =>
+        [fip.fipId, account.maskedAccNumber, account.status, account.description]
+          .filter(Boolean)
+          .join(" / "),
+      ),
+  );
+
+  if (status === "PARTIAL") {
+    const parts = [
+      transactionCount > 0
+        ? `Using transactions from available Setu accounts.`
+        : `Setu returned a PARTIAL session but no transactions were available from READY accounts.`,
+      unavailable.length > 0
+        ? `Unavailable accounts: ${unavailable.join("; ")}.`
+        : null,
+      result.traceId ? `Trace ID: ${result.traceId}.` : null,
+    ].filter(Boolean);
+
+    return parts.join(" ");
+  }
+
+  if (status === "FAILED" || status === "EXPIRED") {
+    const parts = [
+      transactionCount > 0
+        ? "Setu marked the overall session as failed, but some account data was still usable."
+        : null,
+      unavailable.length > 0
+        ? `Unavailable accounts: ${unavailable.join("; ")}.`
+        : null,
+      result.traceId ? `Trace ID: ${result.traceId}.` : null,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(" ") : result.providerMessage ?? null;
+  }
+
+  if (transactionCount === 0) {
+    return "Setu completed the FI session, but returned no transactions for the selected range.";
+  }
+
+  return null;
+}
+
+function isFetchableAccountStatus(status: string | undefined): boolean {
+  const normalized = status?.toUpperCase();
+  return normalized === "READY" || normalized === "DELIVERED" || !normalized;
 }

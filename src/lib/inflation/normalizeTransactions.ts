@@ -125,6 +125,7 @@ export function classifyEligibility(
   }
 
   const haystack = `${txn.merchantNormalized} ${normalizeMerchantName(txn.description)}`;
+  const structuredChannel = getStructuredSandboxChannel(txn.description);
 
   if (matchesAny(haystack, INCOME_PATTERNS)) return "income";
   if (matchesAny(haystack, REFUND_PATTERNS)) return "refund";
@@ -132,9 +133,36 @@ export function classifyEligibility(
   if (matchesAny(haystack, LOAN_PATTERNS)) return "loan_disbursal";
   if (matchesAny(haystack, INVESTMENT_PATTERNS)) return "investment";
   if (matchesAny(haystack, CC_PAYMENT_PATTERNS)) return "credit_card_payment";
+  if (
+    structuredChannel === "ATM" ||
+    structuredChannel === "CASH" ||
+    structuredChannel === "FT"
+  ) {
+    return "non_consumption";
+  }
   if (matchesAny(haystack, OTHER_NON_CONSUMPTION)) return "non_consumption";
 
   return "eligible";
+}
+
+function getStructuredSandboxChannel(description: string): string | null {
+  if (!description || !description.includes("/")) {
+    return null;
+  }
+
+  const [first, second] = description
+    .split("/")
+    .map((segment) => segment.trim().toUpperCase());
+
+  if (!first || !second) {
+    return null;
+  }
+
+  if ((second === "DE" || second === "DR" || second === "CR") && /^[A-Z]+$/.test(first)) {
+    return first;
+  }
+
+  return null;
 }
 
 function matchesAny(text: string, patterns: RegExp[]): boolean {

@@ -23,7 +23,39 @@ export async function GET(request: Request) {
         status: result.status,
         sessionId: result.sessionId,
         consentId: result.consentId,
+        traceId: result.traceId,
+        txnId: result.txnId,
+        providerMessage: result.providerMessage,
+        fips: result.fips ?? [],
       });
+    }
+
+    const canUseReturnedData =
+      Boolean(result.hasUsableAccountData) ||
+      (result.transactionCount ?? result.transactions?.length ?? 0) > 0;
+
+    if (
+      (result.status === "FAILED" || result.status === "EXPIRED") &&
+      !canUseReturnedData
+    ) {
+      return Response.json(
+        {
+          success: false,
+          status: result.status,
+          sessionId: result.sessionId,
+          consentId: result.consentId,
+          traceId: result.traceId,
+          txnId: result.txnId,
+          fips: result.fips ?? [],
+          error: {
+            code: "SETU_SESSION_FAILED",
+            message:
+              result.providerMessage ??
+              `Setu sandbox marked this FI session as ${result.status}.`,
+          },
+        },
+        { status: 409 },
+      );
     }
 
     return Response.json({
@@ -33,6 +65,10 @@ export async function GET(request: Request) {
       consentId: result.consentId,
       transactionCount: result.transactionCount ?? 0,
       transactions: result.transactions ?? [],
+      traceId: result.traceId,
+      txnId: result.txnId,
+      providerMessage: result.providerMessage,
+      fips: result.fips ?? [],
     });
   } catch (error) {
     return jsonError(error);

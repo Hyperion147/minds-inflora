@@ -1,7 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  CircleAlert,
+  Database,
+  Landmark,
+  Loader2,
+  ShieldCheck,
+  WalletCards,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { pollSessionTransactions } from "@/lib/aa/sessionPolling";
 import type { EngineTransactionInput, InfloraResult } from "@/lib/inflation/types";
 import type { InflationPipelineDiagnostics } from "@/lib/inflation";
@@ -447,269 +477,425 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
   }
 
   return (
-    <div className="space-y-8 font-sans text-zinc-900">
-      <header className="border-b border-zinc-200 pb-6">
-        <p className="text-sm font-medium tracking-wide text-zinc-500">
-          INFLORA
-        </p>
-        <h1 className="mt-1 text-3xl font-semibold">
-          Account Aggregator Integration Test
-        </h1>
-        <dl className="mt-4 grid gap-1 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="inline text-zinc-500">Provider: </dt>
-            <dd className="inline font-medium">{providerLabel}</dd>
+    <div className="space-y-6 font-sans text-foreground">
+      <Card className="overflow-hidden border-dashed bg-card">
+        <CardHeader className="border-b border-dashed border-border">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">Live Account Aggregator</Badge>
+                <Badge variant={badgeVariantForStatus(phase)}>{phase}</Badge>
+              </div>
+              <div>
+                <CardDescription>INFLORA secure data connection</CardDescription>
+                <CardTitle className="mt-3 text-4xl leading-none sm:text-5xl">
+                  Connect live financial accounts.
+                </CardTitle>
+              </div>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Use Account Aggregator consent to fetch read-only transaction data,
+                then run the same personal inflation pipeline used by the showcase dashboard.
+              </p>
+            </div>
+            <Button asChild variant="outline" className="border-dashed">
+              <Link href="/dashboard?mode=showcase">
+                Back to Showcase
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
-          <div>
-            <dt className="inline text-zinc-500">Status: </dt>
-            <dd className="inline font-medium">{phase}</dd>
-          </div>
-          {consentId ? (
-            <div>
-              <dt className="inline text-zinc-500">Consent ID: </dt>
-              <dd className="inline font-mono text-xs">{maskId(consentId)}</dd>
-            </div>
-          ) : null}
-          {consentStatus ? (
-            <div>
-              <dt className="inline text-zinc-500">Consent status: </dt>
-              <dd className="inline font-medium">{consentStatus}</dd>
-            </div>
-          ) : null}
-          {sessionId ? (
-            <div>
-              <dt className="inline text-zinc-500">Session: </dt>
-              <dd className="inline font-mono text-xs">{maskId(sessionId)}</dd>
-            </div>
-          ) : null}
-          {sessionStatus ? (
-            <div>
-              <dt className="inline text-zinc-500">Session status: </dt>
-              <dd className="inline font-medium">{sessionStatus}</dd>
-            </div>
-          ) : null}
-        </dl>
-        {phaseDetail ? (
-          <p className="mt-3 text-sm text-zinc-600">{phaseDetail}</p>
-        ) : null}
-      </header>
+        </CardHeader>
+        <CardContent className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
+          <StatusTile icon={Landmark} label="Provider" value={providerLabel} />
+          <StatusTile icon={ShieldCheck} label="Consent" value={consentStatus ?? "Not started"} />
+          <StatusTile icon={Database} label="FI session" value={sessionStatus ?? "Not created"} />
+          <StatusTile icon={WalletCards} label="Transactions" value={String(transactions.length)} />
+        </CardContent>
+      </Card>
+
+      {phaseDetail ? (
+        <Alert>
+          <CircleAlert className="mb-2 h-4 w-4" />
+          <AlertTitle>Current status</AlertTitle>
+          <AlertDescription>{phaseDetail}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-        >
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <CircleAlert className="mb-2 h-4 w-4" />
+          <AlertTitle>Unable to continue</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="flex-1 text-sm">
-          <span className="mb-1 block text-zinc-500">Customer mobile number</span>
-          <input
-            type="tel"
-            inputMode="numeric"
-            autoComplete="tel"
-            placeholder="10-digit mobile"
-            value={mobileNumber}
-            onChange={(e) => setMobileNumber(normalizeMobileInput(e.target.value))}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
-          />
-        </label>
-      </div>
+      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <Card className="min-w-0 bg-card">
+          <CardHeader>
+            <CardDescription>Step 1</CardDescription>
+            <CardTitle>Start with your mobile number</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <label className="block text-sm">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Customer mobile number
+              </span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                placeholder="10-digit mobile"
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(normalizeMobileInput(e.target.value))}
+                className="h-11 w-full rounded-sm border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </label>
 
-      {availability.length > 0 ? (
-        <ul className="space-y-1 text-sm">
-          {availability.map((account) => (
-            <li key={`${account.aa}-${account.vua}`}>
-              {account.aa}: {account.vua} — {account.status ? "available" : "unavailable"}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+            <div className="grid gap-3">
+              <Button
+                type="button"
+                disabled={Boolean(busy)}
+                onClick={() => void checkAvailability()}
+                variant="outline"
+                className="justify-between border-dashed"
+              >
+                <span>{busy === "availability" ? "Checking..." : "Check account availability"}</span>
+                {busy === "availability" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                type="button"
+                disabled={Boolean(busy)}
+                onClick={() => void connect()}
+                className="justify-between"
+              >
+                <span>{busy === "connect" ? "Creating consent..." : "Connect Financial Accounts"}</span>
+                {busy === "connect" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={Boolean(busy)}
-          onClick={() => void checkAvailability()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
-        >
-          {busy === "availability" ? "Checking…" : "Check account availability"}
-        </button>
-        <button
-          type="button"
-          disabled={Boolean(busy)}
-          onClick={() => void connect()}
-          className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
-        >
-          {busy === "connect" ? "Creating consent…" : "Connect Financial Accounts"}
-        </button>
-        <button
-          type="button"
-          disabled={Boolean(busy) || !canFetch}
-          onClick={() => void fetchFinancialData()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
-        >
-          {busy === "session" || busy === "poll"
-            ? "Fetching your financial data..."
-            : "Fetch My Financial Data"}
-        </button>
-        <button
-          type="button"
-          disabled={Boolean(busy) || transactions.length === 0}
-          onClick={() => void calculateInflation()}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60"
-        >
-          {busy === "inflate"
-            ? "Calculating…"
-            : "Calculate My Personal Inflation"}
-        </button>
-      </div>
+            {availability.length > 0 ? (
+              <div className="rounded-sm border border-dashed border-border p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Account availability
+                </p>
+                <div className="mt-3 space-y-2">
+                  {availability.map((account) => (
+                    <div
+                      key={`${account.aa}-${account.vua}`}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
+                      <span className="truncate text-muted-foreground">
+                        {account.aa} / {account.vua}
+                      </span>
+                      <Badge variant={account.status ? "success" : "warning"}>
+                        {account.status ? "Available" : "Unavailable"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
 
-      {transactions.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">
-            Transactions fetched: {transactions.length}
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-300 text-zinc-500">
-                  <th className="py-2 pr-4 font-medium">Date</th>
-                  <th className="py-2 pr-4 font-medium">Description</th>
-                  <th className="py-2 pr-4 font-medium">Type</th>
-                  <th className="py-2 text-right font-medium">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((txn) => (
-                  <tr key={txn.id} className="border-b border-zinc-100">
-                    <td className="py-2 pr-4 whitespace-nowrap">
-                      {formatDisplayDate(txn.date)}
-                    </td>
-                    <td className="py-2 pr-4">
-                      {txn.description ?? txn.merchant ?? "—"}
-                    </td>
-                    <td className="py-2 pr-4 capitalize">
-                      {txn.type === "CREDIT" ? "Credit" : "Debit"}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {formatInr(txn.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
+        <Card className="min-w-0 bg-card">
+          <CardHeader>
+            <CardDescription>Step 2</CardDescription>
+            <CardTitle>Fetch data and calculate inflation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                disabled={Boolean(busy) || !canFetch}
+                onClick={() => void fetchFinancialData()}
+                variant="outline"
+                className="justify-between border-dashed"
+              >
+                <span>
+                  {busy === "session" || busy === "poll"
+                    ? "Fetching financial data..."
+                    : "Fetch Financial Data"}
+                </span>
+                {busy === "session" || busy === "poll" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                type="button"
+                disabled={Boolean(busy) || transactions.length === 0}
+                onClick={() => void calculateInflation()}
+                variant="outline"
+                className="justify-between border-dashed"
+              >
+                <span>{busy === "inflate" ? "Calculating..." : "Calculate Inflation"}</span>
+                {busy === "inflate" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+
+            <Separator />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {consentId ? <InfoLine label="Consent ID" value={maskId(consentId)} /> : null}
+              {sessionId ? <InfoLine label="Session" value={maskId(sessionId)} /> : null}
+              <InfoLine label="Phase" value={phase} />
+              <InfoLine label="Ready to fetch" value={canFetch ? "Yes" : "No"} />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {sessionFips.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">FI Account Status</h2>
-          <ul className="space-y-1 text-sm">
+        <Card className="bg-card">
+          <CardHeader>
+            <CardDescription>Provider diagnostics</CardDescription>
+            <CardTitle>FI account status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
             {sessionFips.flatMap((fip) =>
               (fip.accounts ?? []).map((account) => {
                 const isAvailable = isFetchableAccountStatus(account.status);
                 return (
-                  <li
+                  <div
                     key={`${fip.fipId}-${account.linkRefNumber ?? account.maskedAccNumber ?? account.status}`}
-                    className={isAvailable ? "text-zinc-700" : "text-amber-800"}
+                    className="flex flex-col gap-2 rounded-sm border border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    {[fip.fipId, account.maskedAccNumber, account.status, account.description]
-                      .filter(Boolean)
-                      .join(" / ")}{" "}
-                    {!isAvailable ? "— unavailable" : "— used if data was available"}
-                  </li>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{fip.fipId ?? "FIP"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {[account.maskedAccNumber, account.description].filter(Boolean).join(" / ") ||
+                          "Account details unavailable"}
+                      </p>
+                    </div>
+                    <Badge variant={isAvailable ? "success" : "warning"}>
+                      {isAvailable ? "Usable" : account.status ?? "Unavailable"}
+                    </Badge>
+                  </div>
                 );
               }),
             )}
-          </ul>
-        </section>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {transactions.length > 0 ? (
+        <Card className="min-w-0 bg-card">
+          <CardHeader>
+            <CardDescription>Fetched from Account Aggregator</CardDescription>
+            <CardTitle>Transactions fetched: {transactions.length}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.slice(0, 20).map((txn) => (
+                  <TableRow key={txn.id}>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDisplayDate(txn.date)}
+                    </TableCell>
+                    <TableCell className="max-w-[22rem] truncate font-medium">
+                      {txn.description ?? txn.merchant ?? "—"}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant={txn.type === "CREDIT" ? "success" : "secondary"}>
+                        {txn.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatInr(txn.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {transactions.length > 20 ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Showing latest 20 of {transactions.length} transactions.
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
       ) : null}
 
       {inflation ? (
-        <section className="space-y-3 border-t border-zinc-200 pt-6">
-          <h2 className="text-lg font-semibold">Personal Inflation</h2>
-          {inflation.calculationStatus !== "OK" ? (
-            <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              Personal inflation is unavailable because categorization coverage is insufficient for the fetched transactions.
-            </p>
-          ) : null}
-          <dl className="grid gap-2 text-sm sm:grid-cols-2">
-            <div>
-              <dt className="text-zinc-500">Personal Inflation</dt>
-              <dd className="text-xl font-semibold">
-                {inflation.calculationStatus === "OK"
-                  ? `${inflation.personalInflation.toFixed(2)}%`
-                  : "Insufficient data"}
-              </dd>
+        <Card className="border-primary bg-card">
+          <CardHeader>
+            <CardDescription>Inflation result</CardDescription>
+            <CardTitle>Personal inflation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {inflation.calculationStatus !== "OK" ? (
+              <Alert variant="warning">
+                <CircleAlert className="mb-2 h-4 w-4" />
+                <AlertTitle>Insufficient categorization</AlertTitle>
+                <AlertDescription>
+                  Personal inflation is unavailable because categorization coverage is
+                  insufficient for the fetched transactions.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            <div className="grid gap-4 sm:grid-cols-4">
+              <MetricBox
+                label="Personal Inflation"
+                value={
+                  inflation.calculationStatus === "OK"
+                    ? `${inflation.personalInflation.toFixed(2)}%`
+                    : "Insufficient"
+                }
+              />
+              <MetricBox label="Headline CPI" value={`${inflation.headlineInflation.toFixed(2)}%`} />
+              <MetricBox
+                label="Difference"
+                value={
+                  inflation.calculationStatus === "OK"
+                    ? `${inflation.differenceFromHeadline.toFixed(2)} pp`
+                    : "Insufficient"
+                }
+              />
+              <MetricBox label="Eligible spend" value={formatInr(inflation.totalEligibleSpend)} />
             </div>
-            <div>
-              <dt className="text-zinc-500">Headline CPI</dt>
-              <dd className="text-xl font-semibold">
-                {inflation.headlineInflation.toFixed(2)}%
-              </dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Difference</dt>
-              <dd className="font-medium">
-                {inflation.calculationStatus === "OK"
-                  ? `${inflation.differenceFromHeadline.toFixed(2)} pp (${inflation.direction})`
-                  : "Insufficient data"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-zinc-500">Eligible spend</dt>
-              <dd className="font-medium">
-                {formatInr(inflation.totalEligibleSpend)}
-              </dd>
-            </div>
-          </dl>
-          <h3 className="pt-2 font-medium">Top Drivers</h3>
-          <ul className="space-y-1 text-sm">
-            {inflation.topDrivers.map((d) => (
-              <li key={d.categoryId}>
-                {d.categoryName}: {d.contributionPercentagePoints.toFixed(2)} pp
-                (≈ ₹{d.per100Impact.toFixed(2)} / ₹100)
-              </li>
-            ))}
-          </ul>
-          {diagnostics ? (
-            <div className="rounded border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700">
-              <h3 className="font-medium text-zinc-900">
-                Pipeline diagnostics
-              </h3>
-              <p className="mt-1">
-                Eligible: {diagnostics.eligibleCount} /{" "}
-                {diagnostics.transactionCount}; mapped categories:{" "}
-                {diagnostics.mappedCategoryCount}; uncategorized spend:{" "}
-                {formatInr(diagnostics.uncategorizedSpend)} (
-                {diagnostics.uncategorizedPercentage.toFixed(2)}%).
-              </p>
-              <p className="mt-1">
-                Categorized spend used for inflation:{" "}
-                {formatInr(inflation.categorizedSpend)}.
-              </p>
-              {diagnostics.topCategorySamples.length > 0 ? (
-                <ul className="mt-2 space-y-1">
-                  {diagnostics.topCategorySamples.map((sample) => (
-                    <li key={sample.id}>
-                      {sample.descriptionSample ||
-                        sample.merchantNormalized ||
-                        "No description"}{" "}
-                      {"->"} {sample.categoryId} ({sample.exclusionReason})
-                    </li>
+
+            {inflation.topDrivers.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Top drivers
+                </p>
+                <div className="grid gap-3">
+                  {inflation.topDrivers.map((driver) => (
+                    <div
+                      key={driver.categoryId}
+                      className="flex items-center justify-between gap-4 rounded-sm border border-border px-4 py-3"
+                    >
+                      <span className="text-sm font-medium">{driver.categoryName}</span>
+                      <Badge variant="secondary">
+                        {driver.contributionPercentagePoints.toFixed(2)} pp
+                      </Badge>
+                    </div>
                   ))}
-                </ul>
-              ) : null}
-            </div>
-          ) : null}
-        </section>
+                </div>
+              </div>
+            ) : null}
+
+            {diagnostics ? (
+              <div className="rounded-sm border border-dashed border-border p-4 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Categorization summary</p>
+                <p className="mt-2">
+                  Eligible: {diagnostics.eligibleCount} / {diagnostics.transactionCount};
+                  mapped categories: {diagnostics.mappedCategoryCount}; uncategorized spend:{" "}
+                  {formatInr(diagnostics.uncategorizedSpend)} (
+                  {diagnostics.uncategorizedPercentage.toFixed(2)}%).
+                </p>
+                <p className="mt-1">
+                  Categorized spend used for inflation: {formatInr(inflation.categorizedSpend)}.
+                </p>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );
+}
+
+function StatusTile({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-sm border border-dashed border-border bg-background px-4 py-3">
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </p>
+      <p className="mt-2 truncate text-sm font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function InfoLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-sm border border-border bg-background px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-sm font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function MetricBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-sm border border-dashed border-border bg-background px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function badgeVariantForStatus(
+  status: string,
+): "success" | "warning" | "destructive" | "secondary" {
+  const normalized = status.toUpperCase();
+
+  if (
+    normalized.includes("ACTIVE") ||
+    normalized.includes("READY") ||
+    normalized.includes("LOADED")
+  ) {
+    return "success";
+  }
+
+  if (
+    normalized.includes("FAILED") ||
+    normalized.includes("ERROR") ||
+    normalized.includes("REJECTED") ||
+    normalized.includes("EXPIRED") ||
+    normalized.includes("REVOKED")
+  ) {
+    return "destructive";
+  }
+
+  if (
+    normalized.includes("FETCHING") ||
+    normalized.includes("WAITING") ||
+    normalized.includes("CREATING") ||
+    normalized.includes("REDIRECTING") ||
+    normalized.includes("SESSION") ||
+    normalized.includes("PARTIAL")
+  ) {
+    return "warning";
+  }
+
+  return "secondary";
 }
 
 function sleep(ms: number): Promise<void> {
@@ -738,8 +924,6 @@ function formatSessionFailureDetails(result: {
 
   const details = [
     states.length > 0 ? `Provider statuses: ${states.join("; ")}` : null,
-    result.traceId ? `Trace ID: ${result.traceId}` : null,
-    result.txnId ? `Transaction ID: ${result.txnId}` : null,
   ].filter(Boolean);
 
   return details.length > 0 ? details.join(" | ") : null;
@@ -780,7 +964,6 @@ function buildSessionSuccessDetail(
       unavailable.length > 0
         ? `Unavailable accounts: ${unavailable.join("; ")}.`
         : null,
-      result.traceId ? `Trace ID: ${result.traceId}.` : null,
     ].filter(Boolean);
 
     return parts.join(" ");
@@ -794,7 +977,6 @@ function buildSessionSuccessDetail(
       unavailable.length > 0
         ? `Unavailable accounts: ${unavailable.join("; ")}.`
         : null,
-      result.traceId ? `Trace ID: ${result.traceId}.` : null,
     ].filter(Boolean);
 
     return parts.length > 0 ? parts.join(" ") : result.providerMessage ?? null;

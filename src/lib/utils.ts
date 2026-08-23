@@ -1,5 +1,9 @@
 import { randomBytes } from "crypto";
 
+export function cn(...inputs: Array<string | false | null | undefined>): string {
+  return inputs.filter(Boolean).join(" ");
+}
+
 export function createId(prefix?: string): string {
   const id = randomBytes(16).toString("hex");
   return prefix ? `${prefix}_${id}` : id;

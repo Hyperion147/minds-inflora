@@ -8,6 +8,7 @@ import {
   calculateSpendingWeights,
   categorizeTransactions,
   classifyEligibility,
+  loadDeterministicFixtureTransactionsCsv,
   loadDemoTransactionsCsv,
   loadInfloraEngineData,
   normalizeMerchantName,
@@ -15,6 +16,7 @@ import {
   resolveMerchantCategory,
   selectTopDrivers,
   traceInflationPipeline,
+  UNCATEGORIZED,
   type CpiDataset,
   type EngineTransactionInput,
   type MerchantCategoryMapping,
@@ -105,6 +107,175 @@ describe("merchant normalization", () => {
     expect(resolveMerchantCategory("Unknown Mart", mapping)).toBe(
       "uncategorized",
     );
+  });
+
+  it("adds categorization metadata for exact merchant matches", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "exact-1",
+            date: "2026-07-01",
+            merchant: "Swiggy",
+            amount: 200,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]).toMatchObject({
+      categoryId: "food_beverages",
+      categoryConfidence: "HIGH",
+      categorizationMethod: "exact_merchant",
+      categorizationSource: "swiggy",
+    });
+  });
+
+  it("matches deterministic merchant aliases safely", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "alias-1",
+            date: "2026-07-01",
+            merchant: "Amazon Online",
+            amount: 400,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]).toMatchObject({
+      categoryId: "household_goods",
+      categoryConfidence: "HIGH",
+      categorizationMethod: "merchant_alias",
+      categorizationSource: "amazon",
+    });
+  });
+
+  it("matches dotted merchant aliases safely", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "alias-dot-1",
+            date: "2026-07-01",
+            merchant: "Swiggy.in",
+            amount: 320,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]).toMatchObject({
+      categoryId: "food_beverages",
+      categoryConfidence: "HIGH",
+      categorizationMethod: "merchant_alias",
+      categorizationSource: "swiggy",
+    });
+  });
+
+  it("categorizes real CSV merchants with exact matching", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "csv-amazon",
+            date: "2026-07-01",
+            merchant: "Amazon",
+            amount: 900,
+            currency: "INR",
+            type: "DEBIT",
+          },
+          {
+            id: "csv-swiggy",
+            date: "2026-07-01",
+            merchant: "Swiggy",
+            amount: 250,
+            currency: "INR",
+            type: "DEBIT",
+          },
+          {
+            id: "csv-uber",
+            date: "2026-07-01",
+            merchant: "Uber",
+            amount: 180,
+            currency: "INR",
+            type: "DEBIT",
+          },
+          {
+            id: "csv-apollo",
+            date: "2026-07-01",
+            merchant: "Apollo Pharmacy",
+            amount: 520,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized.map((txn) => txn.categoryId)).toEqual([
+      "household_goods",
+      "food_beverages",
+      "transport",
+      "healthcare",
+    ]);
+    expect(categorized.every((txn) => txn.categorizationMethod === "exact_merchant")).toBe(true);
+    expect(categorized.every((txn) => txn.categoryConfidence === "HIGH")).toBe(true);
+  });
+
+  it("supports alias matching for real CSV merchants without categorizing names", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "alias-amazon",
+            date: "2026-07-01",
+            merchant: "Amazon Online",
+            amount: 400,
+            currency: "INR",
+            type: "DEBIT",
+          },
+          {
+            id: "alias-unknown",
+            date: "2026-07-01",
+            merchant: "Unknown Merchant",
+            amount: 400,
+            currency: "INR",
+            type: "DEBIT",
+          },
+          {
+            id: "alias-person-name",
+            date: "2026-07-01",
+            description: "CARD/DE/596392116311/Trisha Basu/APYP/38259647",
+            amount: 400,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]).toMatchObject({
+      categoryId: "household_goods",
+      categorizationMethod: "merchant_alias",
+      categoryConfidence: "HIGH",
+      categorizationSource: "amazon",
+    });
+    expect(categorized[1]?.categoryId).toBe(UNCATEGORIZED);
+    expect(categorized[2]?.categoryId).toBe(UNCATEGORIZED);
   });
 });
 
@@ -495,6 +666,9 @@ describe("uncategorized & exclusions", () => {
       eligible: true,
       exclusionReason: "eligible",
       categoryId: "uncategorized",
+      categoryConfidence: "NONE",
+      categorizationMethod: "uncategorized",
+      categorizationSource: null,
     });
   });
 
@@ -524,9 +698,66 @@ describe("uncategorized & exclusions", () => {
     );
 
     expect(categorized[0]?.eligible).toBe(true);
-    expect(categorized[0]?.categoryId).toBe("household_goods");
+    expect(categorized[0]).toMatchObject({
+      categoryId: "household_goods",
+      categoryConfidence: "MEDIUM",
+      categorizationMethod: "structured_narration",
+      categorizationSource: "amazon",
+    });
     expect(categorized[1]?.eligible).toBe(true);
-    expect(categorized[1]?.categoryId).toBe("uncategorized");
+    expect(categorized[1]).toMatchObject({
+      categoryId: "uncategorized",
+      categoryConfidence: "NONE",
+      categorizationMethod: "uncategorized",
+      categorizationSource: null,
+    });
+  });
+
+  it("does not categorize arbitrary personal-name narration without a known merchant key", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "name-only-1",
+            date: "2026-07-01T10:05:00+05:30",
+            description: "CARD/DE/596392116312/Dhanush Bedi/APYP/38259648",
+            amount: 800,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]?.categoryId).toBe(UNCATEGORIZED);
+    expect(categorized[0]?.categorizationMethod).toBe("uncategorized");
+    expect(categorized[0]?.categoryConfidence).toBe("NONE");
+  });
+
+  it("retains conservative description phrase matching", () => {
+    const categorized = categorizeTransactions(
+      assessEligibility(
+        normalizeTransactions([
+          {
+            id: "phrase-1",
+            date: "2026-07-01T10:05:00+05:30",
+            description: "UPI/DE/596392116312/Paid to Apollo Pharmacy/38259648",
+            amount: 800,
+            currency: "INR",
+            type: "DEBIT",
+          },
+        ]),
+      ),
+      mapping,
+    );
+
+    expect(categorized[0]).toMatchObject({
+      categoryId: "healthcare",
+      categoryConfidence: "LOW",
+      categorizationMethod: "description_phrase",
+      categorizationSource: "upi de 596392116312 paid to apollo pharmacy 38259648",
+    });
   });
 
   it("reduces false eligible uncategorized spend for Setu sandbox cash/transfer formats", () => {
@@ -715,5 +946,60 @@ describe("demo data pack integration", () => {
       0,
     );
     expect(weightSum).toBeCloseTo(1, 6);
+  });
+
+  it("loads deterministic_fixture_transactions.csv through the production pipeline", () => {
+    const { cpi, merchantMapping } = loadInfloraEngineData();
+    const transactions = loadDeterministicFixtureTransactionsCsv();
+
+    const normalized = normalizeTransactions(transactions);
+    const eligible = assessEligibility(normalized);
+    const categorized = categorizeTransactions(eligible, merchantMapping);
+    const weights = calculateSpendingWeights(categorized, cpi);
+    const result = calculateInflora({
+      transactions,
+      cpi,
+      merchantMapping,
+    });
+
+    const categorizedTransactions = categorized.filter(
+      (txn) => txn.eligible && txn.categoryId !== UNCATEGORIZED,
+    );
+    const eligibleTransactions = categorized.filter((txn) => txn.eligible);
+    const categorizationCoverage =
+      eligibleTransactions.length > 0
+        ? (categorizedTransactions.length / eligibleTransactions.length) * 100
+        : 0;
+
+    process.stdout.write(
+      `Deterministic fixture summary ${JSON.stringify({
+        transactionCount: result.transactionCount,
+        eligibleCount: result.eligibleCount,
+        categorizedTransactionCount: categorizedTransactions.length,
+        categorizedSpend: result.categorizedSpend,
+        mappedCategoryCount: result.mappedCategoryCount,
+        categoriesLength: result.categories.length,
+        topDriversLength: result.topDrivers.length,
+        personalInflation: result.personalInflation,
+        weightsCategoryCount: weights.categories.length,
+        totalEligibleSpend: weights.totalEligibleSpend,
+        categorizationCoverage,
+      })}\n`,
+    );
+
+    expect(transactions.length).toBe(120);
+    expect(result.eligibleCount).toBeGreaterThanOrEqual(70);
+    expect(result.eligibleCount).toBeLessThanOrEqual(100);
+    expect(result.excludedCount).toBeGreaterThan(0);
+    expect(categorizedTransactions.length).toBeGreaterThan(0);
+    expect(categorizedTransactions.length).toBeLessThan(result.eligibleCount);
+    expect(categorizationCoverage).toBeGreaterThanOrEqual(85);
+    expect(categorizationCoverage).toBeLessThanOrEqual(95);
+    expect(result.categorizedSpend).toBeGreaterThan(0);
+    expect(result.mappedCategoryCount).toBeGreaterThan(0);
+    expect(result.calculationStatus).toBe("OK");
+    expect(result.hasSufficientCategorizedSpend).toBe(true);
+    expect(result.categories.length).toBeGreaterThan(0);
+    expect(result.topDrivers.length).toBeGreaterThan(0);
   });
 });

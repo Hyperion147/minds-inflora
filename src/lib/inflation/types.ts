@@ -60,8 +60,20 @@ export type AppCategoryId =
   | "personal_care_misc"
   | "uncategorized";
 
+export type CategoryConfidence = "HIGH" | "MEDIUM" | "LOW" | "NONE";
+
+export type CategorizationMethod =
+  | "exact_merchant"
+  | "merchant_alias"
+  | "structured_narration"
+  | "description_phrase"
+  | "uncategorized";
+
 export type CategorizedTransaction = EligibleTransaction & {
   categoryId: AppCategoryId;
+  categoryConfidence: CategoryConfidence;
+  categorizationMethod: CategorizationMethod;
+  categorizationSource: string | null;
 };
 
 /**

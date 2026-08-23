@@ -78,12 +78,13 @@ export function cpiDatasetFromOfficial(
 }
 
 /**
- * Parse demo_transactions.csv (synthetic). Simple CSV — no quoted commas in pack.
+ * Parse a synthetic transaction CSV. Simple CSV — no quoted commas in pack.
  */
-export function loadDemoTransactionsCsv(
+export function loadTransactionsCsv(
+  fileName: string,
   dataDir = path.join(process.cwd(), "data"),
 ): EngineTransactionInput[] {
-  const filePath = path.join(dataDir, "demo_transactions.csv");
+  const filePath = path.join(dataDir, fileName);
   const text = readFileSync(filePath, "utf8").trim();
   const lines = text.split(/\r?\n/);
   if (lines.length < 2) return [];
@@ -115,4 +116,22 @@ export function loadDemoTransactionsCsv(
   }
 
   return rows;
+}
+
+/**
+ * Parse demo_transactions.csv (synthetic).
+ */
+export function loadDemoTransactionsCsv(
+  dataDir = path.join(process.cwd(), "data"),
+): EngineTransactionInput[] {
+  return loadTransactionsCsv("demo_transactions.csv", dataDir);
+}
+
+/**
+ * Parse deterministic_fixture_transactions.csv (synthetic showcase fixture).
+ */
+export function loadDeterministicFixtureTransactionsCsv(
+  dataDir = path.join(process.cwd(), "data"),
+): EngineTransactionInput[] {
+  return loadTransactionsCsv("deterministic_fixture_transactions.csv", dataDir);
 }

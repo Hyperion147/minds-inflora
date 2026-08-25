@@ -10,7 +10,6 @@ import {
   CircleDashed,
   Database,
   Landmark,
-  Menu,
   RefreshCcw,
   TrendingDown,
   TrendingUp,
@@ -18,6 +17,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AppHeader } from "@/components/navigation/AppHeader";
 import {
   Card,
   CardContent,
@@ -103,26 +103,11 @@ export function DashboardView({ data }: DashboardViewProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-sm font-semibold tracking-[0.24em] text-foreground">
-              INFLORA
-            </Link>
-            <nav className="hidden items-center gap-5 lg:flex">
-              {NAV_ITEMS.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          <div className="hidden items-center gap-3 lg:flex">
+      <AppHeader
+        items={NAV_ITEMS}
+        homeHref="/dashboard"
+        desktopActions={
+          <>
             <div className="w-40">
               <Select value={data.referenceMonth}>
                 <SelectTrigger aria-label="Reference month">
@@ -159,47 +144,22 @@ export function DashboardView({ data }: DashboardViewProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-
-          <div className="flex items-center gap-2 lg:hidden">
+          </>
+        }
+        mobileAccessory={
+          <Badge variant={badgeVariantForTone(data.overallStatusTone)}>
+            {data.overallStatus}
+          </Badge>
+        }
+        mobileContent={
+          <div className="space-y-2">
             <Badge variant={badgeVariantForTone(data.overallStatusTone)}>
-              {data.overallStatus}
+              {data.sourcePill}
             </Badge>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open navigation">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle>INFLORA</SheetTitle>
-                  <SheetDescription>Personal inflation intelligence</SheetDescription>
-                </SheetHeader>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    {NAV_ITEMS.map((item) => (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        className="block text-sm text-muted-foreground"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    <Badge variant={badgeVariantForTone(data.overallStatusTone)}>
-                      {data.sourcePill}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground">{data.referenceMonth}</p>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            <p className="text-sm text-muted-foreground">{data.referenceMonth}</p>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <DataSourceControl
@@ -616,7 +576,7 @@ function DataSourceControl({
         : null;
 
   return (
-    <Card className="min-w-0 border-dashed bg-card">
+    <Card className="min-w-0 border bg-card">
       <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -802,7 +762,7 @@ function WhatAffectsYouMost({
   }
 
   return (
-    <Card className="min-w-0 border-dashed bg-card">
+    <Card className="min-w-0 border bg-card">
       <CardHeader>
         <CardDescription>Basket intelligence</CardDescription>
         <CardTitle>What&apos;s affecting you most?</CardTitle>
@@ -989,7 +949,7 @@ function TransactionDetailsSheet({
                 </div>
               </div>
 
-              <div className="rounded-sm border border-dashed border-border p-4">
+              <div className="rounded-sm border border border-border p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Categorization
                 </p>
@@ -1051,7 +1011,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-sm border border-dashed border-border px-4 py-6 text-center">
+    <div className="rounded-sm border border border-border px-4 py-6 text-center">
       <p className="font-medium text-foreground">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
     </div>

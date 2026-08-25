@@ -22,7 +22,7 @@ export default function AaTestPage() {
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <Suspense
         fallback={
-          <Card className="border-dashed bg-card">
+          <Card className="border bg-card">
             <CardContent className="space-y-4 p-6">
               <Skeleton className="h-5 w-48" />
               <Skeleton className="h-16 w-full" />

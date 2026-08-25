@@ -478,8 +478,8 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
 
   return (
     <div className="space-y-6 font-sans text-foreground">
-      <Card className="overflow-hidden border-dashed bg-card">
-        <CardHeader className="border-b border-dashed border-border">
+      <Card className="overflow-hidden border bg-card">
+        <CardHeader className="border-b border border-border">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -497,7 +497,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 then run the same personal inflation pipeline used by the showcase dashboard.
               </p>
             </div>
-            <Button asChild variant="outline" className="border-dashed">
+            <Button asChild variant="outline" className="border">
               <Link href="/dashboard?mode=showcase">
                 Back to Showcase
                 <ArrowRight className="h-4 w-4" />
@@ -557,7 +557,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 disabled={Boolean(busy)}
                 onClick={() => void checkAvailability()}
                 variant="outline"
-                className="justify-between border-dashed"
+                className="justify-between border"
               >
                 <span>{busy === "availability" ? "Checking..." : "Check account availability"}</span>
                 {busy === "availability" ? (
@@ -582,7 +582,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             </div>
 
             {availability.length > 0 ? (
-              <div className="rounded-sm border border-dashed border-border p-4">
+              <div className="rounded-sm border border border-border p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Account availability
                 </p>
@@ -618,7 +618,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 disabled={Boolean(busy) || !canFetch}
                 onClick={() => void fetchFinancialData()}
                 variant="outline"
-                className="justify-between border-dashed"
+                className="justify-between border"
               >
                 <span>
                   {busy === "session" || busy === "poll"
@@ -636,7 +636,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
                 disabled={Boolean(busy) || transactions.length === 0}
                 onClick={() => void calculateInflation()}
                 variant="outline"
-                className="justify-between border-dashed"
+                className="justify-between border"
               >
                 <span>{busy === "inflate" ? "Calculating..." : "Calculate Inflation"}</span>
                 {busy === "inflate" ? (
@@ -799,7 +799,7 @@ export function AaTestPanel({ providerLabel }: { providerLabel: string }) {
             ) : null}
 
             {diagnostics ? (
-              <div className="rounded-sm border border-dashed border-border p-4 text-sm text-muted-foreground">
+              <div className="rounded-sm border border border-border p-4 text-sm text-muted-foreground">
                 <p className="font-medium text-foreground">Categorization summary</p>
                 <p className="mt-2">
                   Eligible: {diagnostics.eligibleCount} / {diagnostics.transactionCount};
@@ -829,7 +829,7 @@ function StatusTile({
   value: string;
 }) {
   return (
-    <div className="rounded-sm border border-dashed border-border bg-background px-4 py-3">
+    <div className="rounded-sm border border border-border bg-background px-4 py-3">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         {label}
@@ -852,7 +852,7 @@ function InfoLine({ label, value }: { label: string; value: string }) {
 
 function MetricBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-sm border border-dashed border-border bg-background px-4 py-3">
+    <div className="rounded-sm border border border-border bg-background px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>

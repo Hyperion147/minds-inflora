@@ -40,8 +40,8 @@ export function MethodologySection() {
             {methodologyCards.map(([title, copy, Icon]) => (
               <li key={title}>
                 <Card className="h-full rounded-sm bg-background shadow-none">
-                  <CardContent className="p-5">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <CardContent className="">
+                    <Icon className="h-5 w-5 text-primary mt-4" />
                     <h3 className="mt-5 text-sm font-semibold uppercase tracking-[0.14em]">
                       {title}
                     </h3>

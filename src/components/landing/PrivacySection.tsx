@@ -58,7 +58,7 @@ function PrivacyDiagram() {
       aria-label="Consent-based data flow"
       className={cn(landingPanelClassName, "bg-card p-5")}
     >
-      <ol className="grid gap-3">
+      <ol className="grid">
         {privacyNodes.map(([label, Icon], index) => (
           <li key={label}>
             <div className="flex items-center gap-4 rounded-md border border-border p-4">
@@ -70,7 +70,7 @@ function PrivacyDiagram() {
               </span>
             </div>
             {index < privacyNodes.length - 1 ? (
-              <div className="flex h-5 items-center justify-center">
+              <div className="flex items-center justify-center">
                 <MoveRight className="h-4 w-4 rotate-90 text-muted-foreground" />
               </div>
             ) : null}

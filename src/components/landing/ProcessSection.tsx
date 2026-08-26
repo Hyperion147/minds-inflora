@@ -75,9 +75,6 @@ function ProcessStep({
         {step.title}
       </p>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">{step.copy}</p>
-      {!isLast ? (
-        <MoveRight className="absolute bottom-5 right-5 hidden h-4 w-4 text-muted-foreground md:block" />
-      ) : null}
     </li>
   );
 }

@@ -12,8 +12,8 @@ export function HeroSection() {
       aria-labelledby="landing-hero-title"
       className="relative overflow-hidden rounded-md border border-border bg-card px-5 py-10 sm:px-8 sm:py-12 lg:px-12 lg:py-16"
     >
-      <TechnicalLabel className="left-4 top-4">SHOWCASE READY</TechnicalLabel>
-      <TechnicalLabel className="right-4 top-4">2026 / INDIA</TechnicalLabel>
+      <TechnicalLabel className="left-12 top-6">SHOWCASE READY</TechnicalLabel>
+      <TechnicalLabel className="right-12 top-6">2026 / INDIA</TechnicalLabel>
       <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <header className="max-w-2xl pt-8 sm:pt-0">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -69,7 +69,7 @@ function HeroDashboard() {
       aria-label="Personal inflation dashboard preview"
       className="relative rounded-sm border border-border bg-card p-4 shadow-[8px_8px_0_rgba(255,255,255,0.05)]"
     >
-      <TechnicalLabel className="-left-3 top-8 bg-card">
+      <TechnicalLabel className="left-0 -top-12 bg-card">
         Account Aggregator
       </TechnicalLabel>
       <div className="grid gap-4 md:grid-cols-[1.25fr_0.75fr]">

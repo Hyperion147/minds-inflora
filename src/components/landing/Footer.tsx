@@ -5,8 +5,8 @@ import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
-    <footer className="mt-6 flex flex-col gap-6 rounded-md border border-border bg-background px-5 py-8 sm:px-8 lg:px-12">
-      <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+    <footer className="mt-4 flex flex-col gap-6 rounded-md border border-border bg-background px-5 py-8 sm:px-8 lg:px-12">
+      <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <section aria-label="INFLORA company summary">
           <Link href="/" className="inline-flex">
             <Image
@@ -20,7 +20,7 @@ export function Footer() {
           </Link>
         </section>
         <nav aria-label="Footer navigation">
-          <ul className="flex flex-wrap gap-5 text-sm text-muted-foreground">
+          <ul className="flex gap-5 text-sm text-muted-foreground">
             <li>
               <Link
                 href="/dashboard?mode=showcase"
@@ -48,8 +48,8 @@ export function Footer() {
         </nav>
       </div>
       <Separator />
-      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-        (c) 2026 INFLORA
+      <p className="text-xs uppercase text-end tracking-[0.18em] text-muted-foreground">
+        @x.com/suryansu87 (c) 2026 INFLORA
       </p>
     </footer>
   );

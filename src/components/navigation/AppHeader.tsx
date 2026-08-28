@@ -26,6 +26,7 @@ type AppHeaderProps = {
   mobileAccessory?: ReactNode;
   mobileContent?: ReactNode;
   variant?: "default" | "dashboard";
+  navigationSuffix?: string;
 };
 
 export function AppHeader({
@@ -35,6 +36,7 @@ export function AppHeader({
   mobileAccessory,
   mobileContent,
   variant = "default",
+  navigationSuffix = "",
 }: AppHeaderProps) {
   return (
     <>
@@ -54,7 +56,7 @@ export function AppHeader({
               return (
                 <a
                   key={item.href}
-                  href={item.href}
+                  href={`${item.href}${navigationSuffix}`}
                   className="group flex items-center gap-4 border border-transparent px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-outline-variant hover:bg-surface-container-high hover:text-primary"
                 >
                   <Icon className="h-4 w-4 opacity-70 group-hover:opacity-100" />
@@ -72,7 +74,7 @@ export function AppHeader({
           </div>
         </aside>
       ) : null}
-      <header className={variant === "dashboard" ? "fixed left-0 right-0 top-0 z-40 border-b border-outline-variant bg-surface/90 backdrop-blur-md lg:left-72" : "fixed left-0 right-0 top-0 z-40 border-b border-primary bg-background/95 backdrop-blur-md"}>
+      <header className={variant === "dashboard" ? "fixed left-0 right-0 top-0 z-40 border-b border-outline-variant bg-surface lg:left-72" : "fixed left-0 right-0 top-0 z-40 border-b border-primary bg-background"}>
       <div className="mx-auto flex h-16 w-full items-center justify-between gap-3 px-4 sm:px-6 lg:h-20 lg:px-12">
         {variant === "dashboard" ? (
           <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground sm:gap-4 sm:text-[11px] sm:tracking-[0.12em]">

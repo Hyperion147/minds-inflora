@@ -46,7 +46,7 @@ export function CategoryDetailsSheet({
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                     Your spending
                   </p>
-                  <p className="mt-2 text-3xl font-semibold text-foreground">
+                  <p className="mt-2 font-mono text-3xl font-semibold text-foreground">
                     {new Intl.NumberFormat("en-IN", {
                       style: "currency",
                       currency: "INR",

@@ -29,6 +29,7 @@ export function DashboardPageFrame({
         items={DASHBOARD_NAV_ITEMS}
         homeHref="/dashboard"
         variant="dashboard"
+        navigationSuffix={data.mode === "live" ? "?mode=live" : ""}
         desktopActions={
           <>
             <Badge variant={badgeVariantForTone(data.overallStatusTone)}>{data.sourcePill}</Badge>

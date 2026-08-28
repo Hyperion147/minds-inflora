@@ -73,7 +73,7 @@ function HeroDashboard() {
         Account Aggregator
       </TechnicalLabel>
       <div className="grid gap-4 md:grid-cols-[1.25fr_0.75fr]">
-        <article className="rounded-sm border border-border p-5">
+        <article className="border border-border p-5">
           <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
             Personal Inflation
           </p>
@@ -89,13 +89,13 @@ function HeroDashboard() {
           </div>
         </article>
         <div className="space-y-4">
-          <article className="rounded-sm border border-border p-5">
+          <article className="border border-border p-5">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               Headline CPI
             </p>
             <p className="mt-3 font-mono text-3xl font-semibold">4.45%</p>
           </article>
-          <article className="rounded-sm border border-border p-5">
+          <article className="border border-border p-5">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               Top Driver
             </p>
@@ -104,7 +104,7 @@ function HeroDashboard() {
           </article>
         </div>
       </div>
-      <ul className="mt-4 flex flex-wrap gap-2 rounded-sm border border-border p-4">
+      <ul className="mt-4 flex flex-wrap gap-2 border border-border p-4">
         {["Food", "Transport", "Healthcare", "Shopping"].map((category) => (
           <li key={category}>
             <Badge variant="secondary">

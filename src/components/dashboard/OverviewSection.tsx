@@ -42,7 +42,7 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
               </div>
               <CardTitle
                 id="dashboard-overview-title"
-                className="mt-3 text-6xl font-extrabold leading-none tracking-[-0.04em] text-primary sm:text-7xl"
+                className="mt-3 font-mono text-6xl font-extrabold leading-none tracking-[-0.04em] text-primary sm:text-7xl"
               >
                 {data.calculationStatus === "OK"
                   ? `${data.personalInflation.toFixed(2)}%`
@@ -154,7 +154,7 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Difference
             </p>
-            <p className="mt-2 text-4xl font-bold text-primary">
+            <p className="mt-2 font-mono text-4xl font-bold text-primary">
               {data.calculationStatus === "OK"
                 ? `${formatDifference(data.differenceFromHeadline)} pp`
                 : "Insufficient data"}

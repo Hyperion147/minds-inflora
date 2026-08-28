@@ -8,7 +8,7 @@ export function MetricBlock({ label, value }: { label: string; value: string }) 
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-bold text-primary">{value}</p>
+      <p className="mt-2 font-mono text-2xl font-bold text-primary">{value}</p>
     </div>
   );
 }
@@ -35,9 +35,9 @@ export function ComparisonRow({
         <p className="text-sm text-muted-foreground">{label}</p>
         <p className="text-sm font-medium text-foreground">{visibleValue}</p>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-muted">
+      <div className="h-1 overflow-hidden bg-muted">
         <div
-          className={cn("h-full rounded-full bg-primary", muted && "bg-muted-foreground")}
+          className={cn("h-full bg-primary", muted && "bg-muted-foreground")}
           style={{ width: `${width}%` }}
           role="img"
           aria-label={`${label}: ${visibleValue}`}
@@ -55,7 +55,7 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-sm border border-border px-4 py-6 text-center">
+    <div className="border border-border px-4 py-6 text-center">
       <p className="font-medium text-foreground">{title}</p>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
     </div>
@@ -81,7 +81,7 @@ export function StatusStat({
   value: string;
 }) {
   return (
-    <div className="rounded-sm border border-border px-4 py-3">
+    <div className="border border-border px-4 py-3">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
         {label}

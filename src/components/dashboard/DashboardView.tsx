@@ -65,6 +65,7 @@ export function DashboardView({ data }: DashboardViewProps) {
         items={DASHBOARD_NAV_ITEMS}
         homeHref="/dashboard"
         variant="dashboard"
+        navigationSuffix={data.mode === "live" ? "?mode=live" : ""}
         desktopActions={
           <>
             <div className="w-40">
@@ -173,7 +174,7 @@ export function DashboardView({ data }: DashboardViewProps) {
 
       {data.state === "processing" ? (
         <div className="fixed bottom-4 right-4 z-50">
-          <Alert className="max-w-sm shadow-lg">
+          <Alert className="max-w-sm">
             <RefreshCcw className="mb-2 h-4 w-4 animate-spin" />
             <AlertTitle>Refreshing data</AlertTitle>
             <AlertDescription>
@@ -185,7 +186,7 @@ export function DashboardView({ data }: DashboardViewProps) {
 
       {data.state === "failed" ? (
         <div className="fixed bottom-4 right-4 z-50">
-          <Alert variant="destructive" className="max-w-sm shadow-lg">
+          <Alert variant="destructive" className="max-w-sm">
             <CircleAlert className="mb-2 h-4 w-4" />
             <AlertTitle>Unable to load live data</AlertTitle>
             <AlertDescription>

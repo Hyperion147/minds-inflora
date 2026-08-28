@@ -139,7 +139,7 @@ function TopDriversExplanation({
               key={driver.categoryId}
               type="button"
               className={cn(
-                "w-full rounded-sm border border-border p-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "w-full border border-border p-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 index === 0 && "border-primary",
               )}
               onClick={() => onSelectCategory(driver.categoryId)}
@@ -207,7 +207,7 @@ function WhatAffectsYouMost({
           <button
             key={insight.label}
             type="button"
-            className="flex items-start justify-between gap-4 rounded-sm border border-border px-4 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="flex items-start justify-between gap-4 border border-border px-4 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             onClick={() => onSelectCategory(insight.category)}
           >
             <div>

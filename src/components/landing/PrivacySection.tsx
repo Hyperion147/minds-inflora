@@ -61,8 +61,8 @@ function PrivacyDiagram() {
       <ol className="grid">
         {privacyNodes.map(([label, Icon], index) => (
           <li key={label}>
-            <div className="flex items-center gap-4 rounded-md border border-border p-4">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-sm border border-border">
+            <div className="flex items-center gap-4 border border-border p-4">
+              <span className="grid h-9 w-9 shrink-0 place-items-center border border-border">
                 <Icon className="h-4 w-4 text-primary" />
               </span>
               <span className="text-sm font-semibold uppercase tracking-[0.14em]">

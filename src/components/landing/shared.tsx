@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export const landingSectionClassName =
   "border-b border-primary px-4 py-16 sm:px-8 lg:px-12 lg:py-20";
 
-export const landingPanelClassName = "rounded-sm border border-border";
+export const landingPanelClassName = "border border-border";
 
 export const landingTitleClassName =
   "text-balance text-4xl font-bold leading-[1.05] tracking-[-0.025em] sm:text-5xl";

@@ -139,7 +139,7 @@ export function TransactionsSection({
                 {data.accountLines.map((account) => (
                   <div
                     key={`${account.fipId}-${account.maskedAccount}`}
-                    className="flex items-start justify-between gap-4 rounded-sm border border-border px-3 py-2"
+                    className="flex items-start justify-between gap-4 border border-border px-3 py-2"
                   >
                     <div>
                       <p className="text-sm font-medium text-foreground">

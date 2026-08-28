@@ -1,22 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
-    <footer className="mt-4 flex flex-col gap-6 rounded-md border border-border bg-background px-5 py-8 sm:px-8 lg:px-12">
+    <footer className="flex flex-col gap-6 border-t border-primary bg-surface px-4 py-12 sm:px-8 lg:px-12">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <section aria-label="INFLORA company summary">
-          <Link href="/" className="inline-flex">
-            <Image
-              src="/inflora-logo-name.png"
-              alt="INFLORA: Personal Inflation Intelligence"
-              width={2172}
-              height={724}
-              sizes="(max-width: 640px) 12rem, 13rem"
-              className="h-auto w-48 sm:w-52"
-            />
+          <Link href="/" className="inline-flex text-xl font-bold tracking-[0.12em] text-primary">
+            INFLORA
           </Link>
         </section>
         <nav aria-label="Footer navigation">
@@ -49,7 +41,7 @@ export function Footer() {
       </div>
       <Separator />
       <p className="text-xs uppercase text-end tracking-[0.18em] text-muted-foreground">
-        @x.com/suryansu87 (c) 2026 INFLORA
+        (c) 2026 INFLORA INTELLIGENCE. ALL RIGHTS RESERVED.
       </p>
     </footer>
   );

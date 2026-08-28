@@ -30,10 +30,10 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
     <section
       id="overview"
       aria-labelledby="dashboard-overview-title"
-      className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]"
+      className="grid gap-px border-b border-outline-variant bg-outline-variant lg:grid-cols-[1.4fr_0.9fr]"
     >
-      <Card className="min-w-0 border-primary bg-card">
-        <CardHeader className="pb-4">
+      <Card className="min-w-0 border-0 bg-surface-container-lowest">
+        <CardHeader className="border-b border-outline-variant pb-6">
           <header className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
               </div>
               <CardTitle
                 id="dashboard-overview-title"
-                className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl"
+                className="mt-3 text-6xl font-extrabold leading-none tracking-[-0.04em] text-primary sm:text-7xl"
               >
                 {data.calculationStatus === "OK"
                   ? `${data.personalInflation.toFixed(2)}%`
@@ -53,7 +53,7 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
                       : "Insufficient data"}
               </CardTitle>
             </div>
-            <div className="flex items-center gap-2 rounded-sm border border-border px-3 py-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-[11px] uppercase text-muted-foreground">
               {data.direction === "ABOVE" ? (
                 <TrendingUp className="h-4 w-4" />
               ) : data.direction === "BELOW" ? (
@@ -126,8 +126,8 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
         </CardContent>
       </Card>
 
-      <Card className="min-w-0 bg-card">
-        <CardHeader>
+      <Card className="min-w-0 border-0 bg-surface-container-low">
+        <CardHeader className="border-b border-outline-variant">
           <CardDescription>Compared with India&apos;s headline CPI</CardDescription>
           <CardTitle>You vs India</CardTitle>
         </CardHeader>
@@ -154,7 +154,7 @@ export function OverviewSection({ data, maxInflation }: OverviewSectionProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Difference
             </p>
-            <p className="mt-2 text-2xl font-semibold text-foreground">
+            <p className="mt-2 text-4xl font-bold text-primary">
               {data.calculationStatus === "OK"
                 ? `${formatDifference(data.differenceFromHeadline)} pp`
                 : "Insufficient data"}

@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export const landingSectionClassName =
-  "mt-6 rounded-md border border-border px-5 py-12 sm:px-8 sm:py-14 lg:px-12 lg:py-16";
+  "border-b border-primary px-4 py-16 sm:px-8 lg:px-12 lg:py-20";
 
 export const landingPanelClassName = "rounded-sm border border-border";
 
 export const landingTitleClassName =
-  "text-balance text-4xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-5xl";
+  "text-balance text-4xl font-bold leading-[1.05] tracking-[-0.025em] sm:text-5xl";
 
 export const landingCopyClassName =
   "text-pretty text-sm leading-6 text-muted-foreground";
@@ -31,7 +31,7 @@ export function TechnicalLabel({
   return (
     <span
       className={cn(
-        "absolute rounded-md border border-border bg-card px-2 py-1 font-mono text-[10px] uppercase leading-4 tracking-[0.14em] text-muted-foreground",
+        "absolute border border-primary bg-background px-2 py-1 font-mono text-[10px] uppercase leading-4 tracking-[0.14em] text-muted-foreground",
         className,
       )}
     >
@@ -57,11 +57,11 @@ export function MetricBar({
         <span className="text-muted-foreground">{label}</span>
         <span>{value}</span>
       </figcaption>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+      <div className="mt-2 h-1 overflow-hidden bg-muted">
         <div
           aria-hidden="true"
           className={cn(
-            "h-full rounded-full bg-primary",
+            "h-full bg-primary",
             muted && "bg-muted-foreground",
           )}
           style={{ width }}

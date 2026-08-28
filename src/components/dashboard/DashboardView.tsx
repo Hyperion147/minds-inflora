@@ -64,6 +64,7 @@ export function DashboardView({ data }: DashboardViewProps) {
       <AppHeader
         items={DASHBOARD_NAV_ITEMS}
         homeHref="/dashboard"
+        variant="dashboard"
         desktopActions={
           <>
             <div className="w-40">
@@ -113,7 +114,24 @@ export function DashboardView({ data }: DashboardViewProps) {
         }
       />
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto flex w-full max-w-360 flex-1 flex-col gap-8 px-4 pb-12 pt-24 sm:px-6 lg:ml-72 lg:px-12 lg:pt-28">
+        <header className="flex flex-col justify-between gap-6 border-b border-outline-variant pb-8 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <div className="mb-5 flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="bg-primary px-3 py-1 text-primary-foreground">01</span>
+              <span>Dashboard / Personal Inflation Intelligence</span>
+            </div>
+            <h1 className="text-6xl font-extrabold uppercase leading-none tracking-[-0.04em] text-primary">Overview.</h1>
+            <p className="mt-5 border-l border-outline-variant pl-5 text-base leading-7 text-muted-foreground">
+              A precise view of how your spending basket is moving against India&apos;s headline CPI.
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-3 border-l border-outline-variant pl-5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span>{data.referenceMonth}</span>
+            <span className="h-4 w-px bg-outline-variant" />
+            <span>{data.sourcePill}</span>
+          </div>
+        </header>
         <DataSourceControl
           data={data}
           pendingSource={activePendingSource}

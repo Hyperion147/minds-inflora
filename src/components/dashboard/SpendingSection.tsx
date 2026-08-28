@@ -23,10 +23,10 @@ export function SpendingSection({ data, onSelectCategory }: SpendingSectionProps
     <section
       id="inflation"
       aria-labelledby="dashboard-spending-title"
-      className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]"
+      className="grid gap-px border-b border-outline-variant bg-outline-variant xl:grid-cols-[1.15fr_0.85fr]"
     >
-      <Card id="spending" className="min-w-0 bg-card">
-        <CardHeader>
+      <Card id="spending" className="min-w-0 border-0 bg-surface">
+        <CardHeader className="border-b border-outline-variant">
           <CardDescription>Where your money is going</CardDescription>
           <CardTitle id="dashboard-spending-title">Spending breakdown</CardTitle>
         </CardHeader>
@@ -37,7 +37,7 @@ export function SpendingSection({ data, onSelectCategory }: SpendingSectionProps
                 <button
                   key={category.categoryId}
                   type="button"
-                  className="w-full space-y-2 rounded-sm text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="w-full space-y-2 border-b border-outline-variant px-2 py-3 text-left transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => onSelectCategory(category)}
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2 px-2 pt-2">
@@ -71,9 +71,9 @@ export function SpendingSection({ data, onSelectCategory }: SpendingSectionProps
         </CardContent>
       </Card>
 
-      <div className="min-w-0 space-y-6">
-        <Card className="min-w-0 bg-card">
-          <CardHeader>
+      <div className="min-w-0 space-y-px bg-outline-variant">
+        <Card className="min-w-0 border-0 bg-surface-container-low">
+          <CardHeader className="border-b border-outline-variant">
             <CardDescription>Your basket is not the national CPI basket</CardDescription>
             <CardTitle>Why is my inflation different?</CardTitle>
           </CardHeader>
@@ -160,9 +160,9 @@ function TopDriversExplanation({
                   </p>
                 </div>
               </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="mt-4 h-1 overflow-hidden bg-muted">
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className="h-full bg-primary"
                   style={{ width: `${width}%` }}
                   role="img"
                   aria-label={`${displayName} contribution ${formatDifference(

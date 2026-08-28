@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 
 export function MetricBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-sm border border-border px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+    <div className="border border-outline-variant bg-surface-container-lowest px-4 py-4">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
+      <p className="mt-2 text-2xl font-bold text-primary">{value}</p>
     </div>
   );
 }

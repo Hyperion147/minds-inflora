@@ -1,10 +1,12 @@
 import type { DashboardData } from "@/lib/dashboard/types";
 
 export const DASHBOARD_NAV_ITEMS = [
-  { label: "Overview", href: "#overview" },
-  { label: "Spending", href: "#spending" },
-  { label: "Inflation", href: "#inflation" },
-  { label: "Transactions", href: "#transactions" },
+  { label: "Overview", href: "/dashboard" },
+  { label: "Spending", href: "/dashboard/spending" },
+  { label: "Inflation", href: "/dashboard/inflation" },
+  { label: "Insights", href: "/dashboard#transactions" },
+  { label: "Market Data", href: "/dashboard/market-data" },
+  { label: "Reports", href: "/dashboard/reports" },
 ] as const;
 
 export function badgeVariantForTone(

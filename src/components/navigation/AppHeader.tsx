@@ -55,7 +55,7 @@ export function AppHeader({
                 <a
                   key={item.href}
                   href={item.href}
-                  className="group flex items-center gap-4 border border-transparent px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground transition-colors hover:border-outline-variant hover:bg-surface-container-high hover:text-primary"
+                  className="group flex items-center gap-4 border border-transparent px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-outline-variant hover:bg-surface-container-high hover:text-primary"
                 >
                   <Icon className="h-4 w-4 opacity-70 group-hover:opacity-100" />
                   {String(index + 1).padStart(2, "0")} {item.label}
@@ -73,12 +73,12 @@ export function AppHeader({
         </aside>
       ) : null}
       <header className={variant === "dashboard" ? "fixed left-0 right-0 top-0 z-40 border-b border-outline-variant bg-surface/90 backdrop-blur-md lg:left-72" : "fixed left-0 right-0 top-0 z-40 border-b border-primary bg-background/95 backdrop-blur-md"}>
-      <div className="mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:h-20 lg:px-12">
+      <div className="mx-auto flex h-16 w-full items-center justify-between gap-3 px-4 sm:px-6 lg:h-20 lg:px-12">
         {variant === "dashboard" ? (
-          <div className="flex items-center gap-4 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-            <span>/ Terminal</span>
-            <span className="h-4 w-px bg-outline-variant" />
-            <span className="text-primary">Live Feed: {new Date().toLocaleString("en-US", { month: "short", year: "numeric" })}</span>
+          <div className="flex min-w-0 items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground sm:gap-4 sm:text-[11px] sm:tracking-[0.12em]">
+            <span className="shrink-0">/ Terminal</span>
+            <span className="h-4 w-px shrink-0 bg-outline-variant" />
+            <span className="truncate text-primary">Live Feed: {new Date().toLocaleString("en-US", { month: "short", year: "numeric" })}</span>
           </div>
         ) : (
           <div className="flex min-w-0 items-center gap-6">
@@ -114,7 +114,7 @@ export function AppHeader({
             <Search className="h-4 w-4" aria-label="Search" />
             <Bell className="h-4 w-4" aria-label="Notifications" />
             <span className="h-6 w-px bg-outline-variant" />
-            <button type="button" className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-[0.1em] hover:text-destructive">
+            <button type="button" className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-widest hover:text-destructive">
               <LogOut className="h-4 w-4" /> Exit
             </button>
           </div>
@@ -128,19 +128,19 @@ export function AppHeader({
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="w-[min(88vw,22rem)]">
               <SheetHeader>
                 <SheetTitle>INFLORA</SheetTitle>
                 <SheetDescription>Personal inflation intelligence</SheetDescription>
               </SheetHeader>
               <div className="space-y-6">
                 <nav aria-label="Mobile navigation">
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {items.map((item) => (
                       <li key={item.href}>
                         <a
                           href={item.href}
-                          className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                          className="block min-h-11 border-b border-outline-variant px-2 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-container-low hover:text-primary"
                         >
                           {item.label}
                         </a>

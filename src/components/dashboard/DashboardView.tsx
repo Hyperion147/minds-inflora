@@ -121,12 +121,12 @@ export function DashboardView({ data }: DashboardViewProps) {
               <span className="bg-primary px-3 py-1 text-primary-foreground">01</span>
               <span>Dashboard / Personal Inflation Intelligence</span>
             </div>
-            <h1 className="text-6xl font-extrabold uppercase leading-none tracking-[-0.04em] text-primary">Overview.</h1>
-            <p className="mt-5 border-l border-outline-variant pl-5 text-base leading-7 text-muted-foreground">
+            <h1 className="text-5xl font-extrabold uppercase leading-none tracking-[-0.04em] text-primary sm:text-6xl">Overview.</h1>
+            <p className="mt-5 border-l border-outline-variant pl-4 text-sm leading-6 text-muted-foreground sm:pl-5 sm:text-base sm:leading-7">
               A precise view of how your spending basket is moving against India&apos;s headline CPI.
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-3 border-l border-outline-variant pl-5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 border-l border-outline-variant pl-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground sm:gap-3 sm:pl-5 sm:text-[11px] sm:tracking-[0.12em]">
             <span>{data.referenceMonth}</span>
             <span className="h-4 w-px bg-outline-variant" />
             <span>{data.sourcePill}</span>

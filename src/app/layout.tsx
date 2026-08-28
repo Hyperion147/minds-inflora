@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
-import { Fira_Code, Poppins, Space_Grotesk } from "next/font/google";
+import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
+const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "700", "800"],
   display: "swap",
-  variable: "--next-font-poppins",
+  variable: "--next-font-hanken",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
-  variable: "--next-font-space-grotesk",
-});
-
-const firaCode = Fira_Code({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--next-font-fira-code",
+  variable: "--next-font-mono",
 });
 
 export const metadata: Metadata = {
@@ -33,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${spaceGrotesk.variable} ${firaCode.variable} h-full antialiased`}
+      className={`${hankenGrotesk.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
       <body
         suppressHydrationWarning

@@ -5,7 +5,7 @@ import { trustItems } from "./data";
 export function TrustBar() {
   return (
     <section aria-label="INFLORA trust pillars">
-      <ol className="mt-6 grid overflow-hidden rounded-md border border-border bg-card md:grid-cols-4">
+      <ol className="mt-6 grid overflow-hidden border border-border bg-card md:grid-cols-4">
         {trustItems.map(([number, label], index) => (
           <li
             key={label}

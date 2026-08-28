@@ -49,10 +49,10 @@ export function TransactionsSection({
     <section
       id="transactions"
       aria-labelledby="dashboard-transactions-title"
-      className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]"
+      className="grid gap-px border-b border-outline-variant bg-outline-variant xl:grid-cols-[1.15fr_0.85fr]"
     >
-      <Card className="min-w-0 bg-card">
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
+      <Card className="min-w-0 border-0 bg-surface-container-lowest">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-outline-variant">
           <header>
             <CardDescription>Recent transactions</CardDescription>
             <CardTitle id="dashboard-transactions-title">Transaction activity</CardTitle>
@@ -93,8 +93,8 @@ export function TransactionsSection({
       </Card>
 
       <div className="min-w-0 space-y-6">
-        <Card className="min-w-0 bg-card">
-          <CardHeader>
+        <Card className="min-w-0 border-0 bg-surface-container-low">
+          <CardHeader className="border-b border-outline-variant">
             <CardDescription>Insights</CardDescription>
             <CardTitle>What INFLORA sees</CardTitle>
           </CardHeader>
@@ -109,8 +109,8 @@ export function TransactionsSection({
           </CardContent>
         </Card>
 
-        <Card className="min-w-0 bg-card">
-          <CardHeader>
+        <Card className="min-w-0 border-0 bg-surface-container-lowest">
+          <CardHeader className="border-b border-outline-variant">
             <CardDescription>Financial data</CardDescription>
             <CardTitle>Account and data status</CardTitle>
           </CardHeader>
@@ -139,7 +139,7 @@ export function TransactionsSection({
                 {data.accountLines.map((account) => (
                   <div
                     key={`${account.fipId}-${account.maskedAccount}`}
-                    className="flex items-start justify-between gap-4 rounded-sm border border-border px-3 py-2"
+                    className="flex items-start justify-between gap-4 border border-border px-3 py-2"
                   >
                     <div>
                       <p className="text-sm font-medium text-foreground">

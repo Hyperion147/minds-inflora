@@ -4,38 +4,45 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.91 0.05 82.69);
-  --foreground: oklch(0.41 0.08 79.04);
-  --card: oklch(0.92 0.04 83.86);
-  --card-foreground: oklch(0.41 0.08 73.75);
-  --popover: oklch(0.92 0.04 83.86);
-  --popover-foreground: oklch(0.41 0.08 73.75);
-  --primary: oklch(0.71 0.10 111.99);
-  --primary-foreground: oklch(0.98 0.01 3.71);
-  --secondary: oklch(0.88 0.05 83.41);
-  --secondary-foreground: oklch(0.51 0.08 79.21);
-  --muted: oklch(0.86 0.06 83.48);
-  --muted-foreground: oklch(0.51 0.08 74.26);
-  --accent: oklch(0.86 0.05 84.50);
-  --accent-foreground: oklch(0.26 0.02 358.42);
-  --destructive: oklch(0.63 0.24 29.21);
-  --border: oklch(0.74 0.06 79.81);
-  --input: oklch(0.74 0.06 79.81);
-  --ring: oklch(0.51 0.08 74.26);
-  --chart-1: oklch(0.66 0.19 41.68);
-  --chart-2: oklch(0.70 0.12 183.20);
-  --chart-3: oklch(0.48 0.08 211.46);
-  --chart-4: oklch(0.84 0.17 85.07);
-  --chart-5: oklch(0.74 0.17 60.21);
-  --sidebar: oklch(0.87 0.06 83.96);
-  --sidebar-foreground: oklch(0.41 0.08 79.04);
-  --sidebar-primary: oklch(0.26 0.02 358.42);
-  --sidebar-primary-foreground: oklch(0.98 0.01 3.71);
-  --sidebar-accent: oklch(0.83 0.06 84.46);
-  --sidebar-accent-foreground: oklch(0.26 0.02 358.42);
-  --sidebar-border: oklch(0.91 0.00 0.43);
-  --sidebar-ring: oklch(0.71 0.00 0.37);
-  --radius: 0.625rem;
+  --background: #fcf9f0;
+  --foreground: #1c1c17;
+  --card: #ffffff;
+  --card-foreground: #1c1c17;
+  --popover: #ffffff;
+  --popover-foreground: #1c1c17;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #5b6312;
+  --secondary-foreground: #ffffff;
+  --muted: #f1eee5;
+  --muted-foreground: #474741;
+  --accent: #e0ea8a;
+  --accent-foreground: #1a1e00;
+  --destructive: #ba1a1a;
+  --border: #c8c7be;
+  --input: #c8c7be;
+  --ring: #5b6312;
+  --chart-1: #5b6312;
+  --chart-2: #ba1a1a;
+  --chart-3: #1c1c17;
+  --chart-4: #e0ea8a;
+  --chart-5: #787770;
+  --sidebar: #f1eee5;
+  --sidebar-foreground: #1c1c17;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e0ea8a;
+  --sidebar-accent-foreground: #1a1e00;
+  --sidebar-border: #c8c7be;
+  --sidebar-ring: #5b6312;
+  --radius: 0.25rem;
+  --surface: #fcf9f0;
+  --surface-container: #f1eee5;
+  --surface-container-low: #f6f3ea;
+  --surface-container-high: #ebe8df;
+  --surface-container-highest: #e5e2da;
+  --surface-container-lowest: #ffffff;
+  --outline-variant: #c8c7be;
   
   --shadow-2xs: 0 1px 3px 0px oklch(0.00 0 0 / 0.05);
   --shadow-xs: 0 1px 3px 0px oklch(0.00 0 0 / 0.05);
@@ -48,13 +55,11 @@
 }
 
 @theme inline {
-  --font-poppins: var(--next-font-poppins), ui-sans-serif, system-ui, sans-serif;
-  --font-space-grotesk: var(--next-font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-fira-code: var(--next-font-fira-code), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-heading: var(--font-poppins);
-  --font-body: var(--font-space-grotesk);
+  --font-hanken: var(--next-font-hanken), ui-sans-serif, sans-serif;
+  --font-mono: var(--next-font-mono), ui-monospace, monospace;
+  --font-heading: var(--font-hanken);
+  --font-body: var(--font-hanken);
   --font-sans: var(--font-body);
-  --font-mono: var(--font-fira-code);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -86,6 +91,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-outline-variant: var(--outline-variant);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -116,14 +128,14 @@
     @apply font-sans;
     }
   :root {
-    --font-heading: var(--font-poppins);
-    --font-body: var(--font-space-grotesk);
-    --font-mono: var(--font-fira-code);
+    --font-heading: var(--font-hanken);
+    --font-body: var(--font-hanken);
+    --font-mono: var(--next-font-mono);
   }
 
   h1 {
     font-family: var(--font-heading);
-    font-size: 2.75rem;
+    font-size: 3rem;
     line-height: 1.1;
     letter-spacing: -0.02em;
     font-weight: 700;
@@ -132,7 +144,7 @@
 
   h2 {
     font-family: var(--font-heading);
-    font-size: 2.25rem;
+    font-size: 2rem;
     line-height: 1.2;
     letter-spacing: -0.015em;
     font-weight: 600;
@@ -174,6 +186,14 @@
   body {
     font-family: var(--font-body);
     line-height: 1.6;
+    background: var(--background);
+  }
+
+  button, a { transition-duration: 180ms; }
+
+  ::selection {
+    color: var(--accent-foreground);
+    background: var(--accent);
   }
 
   code,

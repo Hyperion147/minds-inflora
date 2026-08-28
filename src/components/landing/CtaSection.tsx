@@ -10,7 +10,7 @@ export function CtaSection() {
   return (
     <section
       aria-labelledby="cta-title"
-      className="mt-6 rounded-md border border-border bg-card p-5 sm:p-8 lg:p-12"
+      className="mt-6 border border-border bg-card p-5 sm:p-8 lg:p-12"
     >
       <div
         className={cn(

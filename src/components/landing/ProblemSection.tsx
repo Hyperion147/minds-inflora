@@ -14,7 +14,7 @@ export function ProblemSection() {
       aria-labelledby="problem-title"
       className={cn(
         landingSectionClassName,
-        "grid gap-10 bg-background lg:grid-cols-[0.9fr_1.1fr] lg:gap-12",
+        "grid gap-10 bg-surface-container-low lg:grid-cols-[0.9fr_1.1fr] lg:gap-12",
       )}
     >
       <header>

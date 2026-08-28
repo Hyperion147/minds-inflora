@@ -58,7 +58,7 @@ function DashboardPreview() {
     >
       <dl className="grid gap-3 sm:grid-cols-4">
         {dashboardMetrics.map(([label, value]) => (
-          <div key={label} className="rounded-md border border-border p-4">
+          <div key={label} className="border border-border p-4">
             <dt className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               {label}
             </dt>
@@ -69,7 +69,7 @@ function DashboardPreview() {
       <div className="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
         <section
           aria-labelledby="top-drivers-title"
-          className="rounded-md border border-border p-5"
+          className="border border-border p-5"
         >
           <h3 id="top-drivers-title" className="text-sm font-semibold">
             Top Drivers
@@ -81,9 +81,9 @@ function DashboardPreview() {
                   <span>{label}</span>
                   <span className="font-mono">{value}</span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div className="mt-2 h-1 overflow-hidden bg-muted">
                   <div
-                    className="h-full rounded-full bg-primary transition-all"
+                    className="h-full bg-primary transition-all"
                     style={{ width: `${width}%` }}
                   />
                 </div>
@@ -93,7 +93,7 @@ function DashboardPreview() {
         </section>
         <section
           aria-labelledby="transaction-activity-title"
-          className="rounded-md border border-border p-5"
+          className="border border-border p-5"
         >
           <h3 id="transaction-activity-title" className="text-sm font-semibold">
             Transaction Activity
